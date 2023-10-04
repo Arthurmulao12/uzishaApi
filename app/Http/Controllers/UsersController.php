@@ -196,20 +196,8 @@ class UsersController extends Controller
     public function login(Request $request){
 
         $user=User::leftjoin('usersenterprises as UE', 'users.id','=','UE.user_id')->leftjoin('roles as R', 'users.permissions','=','R.id')
-        ->where('user_name', '=',$request->user_name)
-        ->where('user_password','=',$request->user_password)->get(['users.*','UE.enterprise_id', 'permissions'=> 'R.*'])[0];
-
-        // $user=User::leftjoin('affectation_users as A', 'users.id','=','A.user_id')
-        // ->leftjoin('departments as D', 'A.department_id','=','D.id')
-        // // ->leftjoin('usersenterprises as UE', 'users.id','=','UE.user_id')
-        // ->where('users.user_name', '=',$request->user_name)
-        // ->where('users.user_password','=',$request->user_password)
-        // ->get(['D.department_name as department_name', 'A.department_id', 'users.*','C.access','A.level','A.id as affectation_id'])[0];
-        // //checking if decision team
-        // $ifdecision=decision_team::where('user_id','=',$user['id'])->get();
-        // if(count($ifdecision)>0){
-        //     $user['level']='decisionteam';
-        // }
+        ->where('users.user_name',$request->user_name)
+        ->where('users.user_password','=',$request->user_password)->get(['users.*','UE.enterprise_id', 'permissions'=> 'R.*', 'id'=> 'users.id'])[0];
         return $user;
     }
 }
