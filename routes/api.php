@@ -84,6 +84,7 @@ Route::get('/users/enterprise/{id}',[UsersController::class,'index']);
 Route::delete('/users/delete/{id}',[UsersController::class,'destroy2']);
 Route::patch('/users/update/{id}',[UsersController::class,'update2']);
 Route::get('/getuser',[UsersController::class,'getone']);
+Route::post('/users/dashboard/{id}',[UsersController::class,'dashboard']);
 
 
 //connection or login
@@ -201,6 +202,14 @@ Route::get('/enterprises/getinfos/{id}',[EnterprisesController::class,'getone'])
 
 //Point of sale (Points des ventes)
 Route::apiResource('pointofsales',PointOfSaleController::class);
+Route::get('pointofsales/enterprise_id/{id}',[PointOfSaleController::class,'foraspecificEse']);
+Route::patch('/pointofsales/update/{id}',[PointOfSaleController::class,'update2']);
+Route::delete('/pointofsales/delete/{id}',[PointOfSaleController::class,'destroy2']);
+Route::post('/pointofsales/affectdeposits',[PointOfSaleController::class,'affectDeposits']);
+Route::get('/pointofsales/deposits/{posid}',[PointOfSaleController::class,'getdeposits']);
+Route::get('/pointofsales/agents/{posid}',[PointOfSaleController::class,'getagents']);
+Route::delete('/pointofsales/deposits/delete/{affectation_id}',[PointOfSaleController::class,'deleteposit']);
+Route::post('/pointofsales/user/delete',[PointOfSaleController::class,'deleteuser']);
 Route::apiResource('userspointofsale',UsersPointOfSaleController::class);
 //Ticket offices (Guichets)
 Route::apiResource('ticketoffices',TicketOfficeController::class);

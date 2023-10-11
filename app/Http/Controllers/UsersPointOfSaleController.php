@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UsersPointOfSale;
 use App\Http\Requests\StoreUsersPointOfSaleRequest;
 use App\Http\Requests\UpdateUsersPointOfSaleRequest;
+use App\Models\User;
 
 class UsersPointOfSaleController extends Controller
 {
@@ -36,7 +37,24 @@ class UsersPointOfSaleController extends Controller
      */
     public function store(StoreUsersPointOfSaleRequest $request)
     {
-        //
+        $users=[];
+        $userCtrl= new UsersController();
+        if ($request && isset($request['users']) && !empty($request['users'])) {
+            foreach ($request['users'] as $value) {
+                $ifexists=UsersPointOfSale::where('user_id','=',$value['user_id'])->where('pos_id','=',$value['pos_id'])->first();
+                if (!$ifexists) {
+                    $affectation = UsersPointOfSale::create([
+                        'user_id'=>$value['user_id'],
+                        'pos_id'=>$value['pos_id']
+                    ]);
+                    if ($affectation) {
+                        array_push($users,$userCtrl->show(User::find($value['user_id'])));
+                    }
+                }
+            }
+        }
+        
+        return $users;
     }
 
     /**

@@ -38,7 +38,7 @@ class Controller extends BaseController
     }
 
     public function defaultmoney($enterpriseid){
-        return moneys::where('enterprise_id','=',$enterpriseid)->where('principal','=',1)->get()[0];
+        return moneys::where('enterprise_id','=',$enterpriseid)->where('principal','=',1)->first();
     }
 
     public function showService(ServicesController $servicesController)

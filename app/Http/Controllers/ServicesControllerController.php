@@ -103,17 +103,42 @@ class ServicesControllerController extends Controller
     
     public function depositarticles($deposit_id){
         $services=[];
+        $defaultmoney = $this->defaultmoney(DepositController::where('id','=',$deposit_id)->first()->enterprise_id);
+        $services = [];
         //getting services for each deposit
-        $data=DepositServices::where('deposit_id','=',$deposit_id)->get();
-        
-            foreach ($data as $service) {
-                $funded=$this->show(servicesController::find($service->service_id));
-                array_push($services,$funded); 
+        $data = DepositServices::where('deposit_id', '=', $deposit_id)->get();
+        foreach ($data as $service) {
+            $funded = $this->serviceDeposit(new Request(['deposit_id' => $deposit_id, 'service_id' => $service['service_id']]));
+            // $funded = $this->show(servicesController::find($service->service_id));
+            $prices = PricesCategories::leftjoin('moneys as M', 'prices_categories.money_id', '=', 'M.id')
+                ->where('prices_categories.service_id', $service['service_id'])
+                ->get(['M.money_name', 'M.abreviation', 'prices_categories.*']);
+
+            $funded['prices'] = $prices;
+            if ($prices->count()) {
+                foreach ($prices as $price) {
+                    if ($price['principal'] == 1 && $defaultmoney->id == $price['money_id']) {
+                        $funded['total'] = $price['price'] * $funded['available_qte'];
+                    }
+                }
             }
+
+
+            array_push($services, $funded);
+        }
                 
         return $services;
     }
 
+    public function serviceDeposit(Request $request)
+    {
+        return ServicesController::leftjoin('categories_services_controllers as C', 'services_controllers.category_id', '=', 'C.id')
+            ->leftjoin('unit_of_measure_controllers as U', 'services_controllers.uom_id', '=', 'U.id')
+            ->leftjoin('deposit_services', 'services_controllers.id', '=', 'deposit_services.service_id')
+            ->where('deposit_services.service_id', '=', $request['service_id'])
+            ->where('deposit_services.deposit_id', '=', $request['deposit_id'])
+            ->get(['deposit_services.available_qte', 'C.name as category_name', 'U.name as uom_name', 'U.symbol as uom_symbol', 'services_controllers.*'])[0];
+    }
     /**
      * Services to give to seller 
      */
