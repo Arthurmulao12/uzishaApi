@@ -83,6 +83,8 @@ Route::ApiResource('/users',UsersController::class);
 Route::get('/users/enterprise/{id}',[UsersController::class,'index']);
 Route::delete('/users/delete/{id}',[UsersController::class,'destroy2']);
 Route::patch('/users/update/{id}',[UsersController::class,'update2']);
+Route::post('/users/updatestatus',[UsersController::class,'changerStatus']);
+Route::post('/users/updatepassword',[UsersController::class,'updatePassword']);
 Route::get('/getuser',[UsersController::class,'getone']);
 Route::post('/users/dashboard/{id}',[UsersController::class,'dashboard']);
 

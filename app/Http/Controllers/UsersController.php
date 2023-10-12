@@ -11,6 +11,8 @@ use App\Models\OtherEntries;
 use Illuminate\Http\Request;
 use App\Models\usersenterprise;
 use App\Models\affectation_users;
+use App\Models\DepositController;
+use App\Models\DepositsUsers;
 use App\Models\money_conversion;
 use Illuminate\Support\Facades\DB;
 
@@ -341,7 +343,19 @@ class UsersController extends Controller
                 ]);
         }
 
-        $userSave=$this->getone($userS['id']);
+        //affect user to the deposit
+        if(isset($request['deposit_id']) && !empty($request['deposit_id'])){
+            $deposit=DepositController::find($request['deposit_id']);
+            if ($deposit) {
+                DepositsUsers::create([
+                    'deposit_id'=>$deposit['id'],
+                    'user_id'=>$userS['id'],
+                    'level'=>'simple'
+                ]);
+            }
+        }
+
+        $userSave=$this->show(User::find($userS['id']));
 
         if(isset($request->level) && isset($request->department_id)){
             // verification si il existe un utilisatair de type admin deja affecter
@@ -368,7 +382,7 @@ class UsersController extends Controller
                     'level' => $request->level,
                     'department_id' => $request->department_id,
                 ]);
-                return [$userSave=$this->getone($userS['id']), $affected = 'succes'];
+                return [$userSave=$this->show(User::find($userS['id'])), $affected = 'succes'];
             }
         }else{
             return $userSave;
@@ -383,15 +397,11 @@ class UsersController extends Controller
      */
     public function show(User $user)
     {
-
-        // $usersent=User::leftjoin('affectation_users as A', 'users.id','=','A.user_id')
-        // // ->leftjoin('departments as D', 'A.department_id','=','D.id')
-        // // ->leftjoin('usersenterprises as UE', 'users.id','=','UE.user_id')
-        // // ->leftjoin('enterprises as E', 'E.id','=','UE.enterprise_id')
-        // ->where('users.id','=',$user->id)
-        // ->get(['users.*', 'A.level'])[0];
-
-        return $user;
+        $usersent=User::leftjoin('roles as R', 'users.permissions','=','R.id')
+        ->leftjoin('usersenterprises as E', 'users.id','=','E.user_id')
+        ->where('users.id','=',$user->id)
+        ->get(['users.*','R.title as role_title', 'R.description as role_description','R.permissions as role_permissions','E.enterprise_id'])->first();
+        return $usersent;
     }
 
     public function getone($id){
@@ -467,10 +477,19 @@ class UsersController extends Controller
         $user=User::find($id);
         $user->update($request->all());
 
-        return User::leftjoin('affectation_users as A', 'users.id','=','A.user_id')
-        ->leftjoin('departments as D', 'A.department_id','=','D.id')
-        ->where('users.id','=',$id)
-        ->get(['D.department_name as department_name', 'D.id as department_id', 'users.*', 'A.level'])[0];
+       return $this->show($user);
+    } 
+    
+    public function changerStatus(Request $request)
+    {
+        DB::update('update users set status = ? where id = ?',[$request['status'],$request['user_id']]);
+        return $this->show(User::find($request['user_id']));
+    } 
+    
+    public function updatePassword(Request $request)
+    {
+        DB::update('update users set user_password = ? where id = ?',[$request['user_password'],$request['user_id']]);
+        return $this->show(User::find($request['user_id']));
     }
 
     /**
@@ -493,7 +512,9 @@ class UsersController extends Controller
 
         $user=User::leftjoin('usersenterprises as UE', 'users.id','=','UE.user_id')->leftjoin('roles as R', 'users.permissions','=','R.id')
         ->where('users.user_name',$request->user_name)
-        ->where('users.user_password','=',$request->user_password)->get(['users.*','UE.enterprise_id', 'permissions'=> 'R.*', 'id'=> 'users.id'])[0];
+        ->where('users.user_password','=',$request->user_password)
+        ->where('users.status','=','enabled')
+        ->get(['users.*','UE.enterprise_id', 'permissions'=> 'R.*','R.title as role_title', 'R.description as role_description','id'=> 'users.id'])[0];
         return $user;
     }
 }
