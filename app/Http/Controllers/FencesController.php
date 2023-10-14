@@ -10,6 +10,7 @@ use App\Models\DebtPayments;
 use App\Models\Expenditures;
 use App\Models\FenceTicketing;
 use App\Models\Invoices;
+use App\Models\OtherEntries;
 use Illuminate\Http\Request;
 
 class FencesController extends Controller
@@ -44,6 +45,9 @@ class FencesController extends Controller
                 // ->where('type_facture','=','cash')->orWhere('type_facture','=','credit')
                 ->where('edited_by_id','=',$request->user_id)->get();
 
+                $entries=OtherEntries::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('user_id','=',$request->user_id)->get();
+
                 $payments=DebtPayments::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
                 ->where('done_by_id','=',$request->user_id)->get();
 
@@ -53,7 +57,7 @@ class FencesController extends Controller
                 $cautions=Cautions::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
                 ->where('user_id','=',$request->user_id)->get();
 
-                $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions];
+                $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions,'entries'=>$entries];
                 return $objet;
             }
         }
@@ -68,6 +72,9 @@ class FencesController extends Controller
                   $sells=Invoices::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
                   // ->where('type_facture','=','cash')->orWhere('type_facture','=','credit')
                   ->where('edited_by_id','=',$request->user_id)->get();
+
+                  $entries=OtherEntries::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
+                  ->where('user_id','=',$request->user_id)->get();
   
                   $payments=DebtPayments::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
                   ->where('done_by_id','=',$request->user_id)->get();
@@ -78,7 +85,7 @@ class FencesController extends Controller
                   $cautions=Cautions::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
                   ->where('user_id','=',$request->user_id)->get();
   
-                  $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions];
+                  $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions,'entries'=>$entries];
                   return $objet;
               }
         }
@@ -114,7 +121,6 @@ class FencesController extends Controller
                 return $message;
             }else{
                 $newfence=Fences::create($request->all());
-
                 if($request->ticketings){
                     foreach($request->ticketings as $ticketing){
                         $ticketing['fence_id']=$newfence['id'];

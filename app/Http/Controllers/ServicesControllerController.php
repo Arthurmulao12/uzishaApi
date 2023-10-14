@@ -249,9 +249,9 @@ class ServicesControllerController extends Controller
      */
     public function importation(Request $request){
         $data=[];
-        if(count($request['data'])>0){
-            foreach ($request['data'] as $key => $article) {
-                if($newArticle=$this->store(new StoreServicesControllerRequest($article))){
+        if(count($request->data)>0){
+            foreach ($request->data as $article) {
+                if ( $newArticle=$this->store(new Request($article))) {
                     array_push($data,$newArticle);
                 }
             }
@@ -265,13 +265,12 @@ class ServicesControllerController extends Controller
      * @param  \App\Http\Requests\StoreServicesControllerRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreServicesControllerRequest $request)
+    public function store(Request $request)
     {
-        // return $request;
-        if(isset($request['name']) && !empty($request['name'])){
+        if(isset($request->name) && !empty($request->name)){
             $new=ServicesController::create($request->all());
-            if(isset($request['pricing'])){
-                foreach ($request['pricing'] as $key=>$pricing) {
+            if(isset($request->pricing)){
+                foreach ($request->pricing as $key=>$pricing) {
                     $pricing['service_id']=$new->id;
                     //check if there is money set
                     if(isset($pricing['money_id']) && !empty($pricing['money_id'])){
@@ -292,7 +291,7 @@ class ServicesControllerController extends Controller
             //if user is affected a deposit put the service in depositServices
             if(isset($request->user_id) && !empty($request->user_id)){
                 //if it sets deposit_id
-                if(isset($request['deposit_id']) && !empty($request['deposit_id'])){
+                if(isset($request->deposit_id) && !empty($request->deposit_id)){
                     $isheaffected=DepositsUsers::where('user_id','=',$request->user_id)->where('deposit_id','=',$request->deposit_id)->get();
                 }else{
                     $isheaffected=DepositsUsers::where('user_id','=',$request->user_id)->get();
@@ -300,12 +299,12 @@ class ServicesControllerController extends Controller
                 
                 if(count($isheaffected)>0) {
 
-                    if($request['available_qte']>0){
+                    if($request->available_qte>0){
                          //insert the service in the actual deposit
                         DepositServices::create([
                             'deposit_id'=>$isheaffected[0]['deposit_id'],
                             'service_id'=>$new->id,
-                            'available_qte'=>$request['available_qte']
+                            'available_qte'=>$request->available_qte
                         ]);
 
                         if($new->type==1){
@@ -314,11 +313,11 @@ class ServicesControllerController extends Controller
                                 'service_id'=>$new->id,
                                 'user_id'=>$new->user_id,
                                 'invoice_id'=>0,
-                                'quantity'=>$request['available_qte'],
+                                'quantity'=>$request->available_qte,
                                 'price'=>0,
                                 'type'=>'entry',
                                 'type_approvement'=>'cash',
-                                'enterprise_id'=>$request['enterprise_id'],
+                                'enterprise_id'=>$request->enterprise_id,
                                 'motif'=>'stock initial',
                                 'depot_id'=>$isheaffected[0]['deposit_id'],
                             ]);

@@ -21,6 +21,7 @@ class Fences extends Model
         'totaldebts',
         'depositcautions',
         'totalexpenditures',
+        'totalentries',
         'sold',
         'uuid',
         'sync_status',

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DebtPayments;
 use App\Http\Requests\StoreDebtPaymentsRequest;
 use App\Http\Requests\UpdateDebtPaymentsRequest;
+use App\Models\Debts;
+use App\Models\Invoices;
 
 class DebtPaymentsController extends Controller
 {
@@ -40,8 +42,13 @@ class DebtPaymentsController extends Controller
      */
     public function store(StoreDebtPaymentsRequest $request)
     {
-
-        return $this->show(DebtPayments::create($request->all()));
+        if ($request['type']=="safeguard") {
+            $debt=Debts::where('uuid','=',$request['debtUuid'])->first();
+            $request['debt_id']= $debt['id'];
+            DebtPayments::create($request->all());
+        }else{
+            return $this->show(DebtPayments::create($request->all()));
+        }
     }
 
     /**

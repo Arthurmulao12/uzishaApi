@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\StockHistoryController;
 use App\Http\Requests\StoreInvoicesRequest;
 use App\Http\Requests\UpdateInvoicesRequest;
+use App\Models\CustomerController;
 use App\Models\DepositServices;
 use App\Models\DepositsUsers;
 use Illuminate\Http\Request;
@@ -188,51 +189,54 @@ class InvoicesController extends Controller
         if($User && $Ese){
             if($this->isactivatedEse($Ese['id'])){
                 $invoice=Invoices::create($request->all());
-
+                if(isset($request['customer_uuid']) && !empty($request['customer_uuid']) && $request['customer_id']==0){
+                    $customer=CustomerController::where('uuid','=',$request['customer_uuid'])->first();
+                    $request['customer_id']= $customer['id'];
+                }
                 //enregistrement des details
                 if(isset($request->details)){
                     foreach ($request->details as $detail) {
                         $detail['invoice_id']=$invoice['id'];
                         $detail['total']=$detail['quantity']*$detail['price'];
                         InvoiceDetails::create($detail);
-                        if((isset($request->type_facture) && $request->type_facture=='cash') || (isset($request->type_facture) && $request->type_facture=='credit') )
-                        {
-                            if(isset($detail['type_service']) && $detail['type_service']=='1'){
-                                $stockbefore=DepositServices::where('deposit_id','=',$detail['deposit_id'])->where('service_id','=',$detail['service_id'])->get()[0];
-                                DB::update('update deposit_services set available_qte = available_qte - ? where service_id = ? and deposit_id = ?',[$detail['quantity'],$detail['service_id'],$detail['deposit_id']]);
+                        // if((isset($request->type_facture) && $request->type_facture=='cash') || (isset($request->type_facture) && $request->type_facture=='credit') )
+                        // {
+                            // if(isset($detail['type_service']) && $detail['type_service']=='1'){
+                            //     $stockbefore=DepositServices::where('deposit_id','=',$detail['deposit_id'])->where('service_id','=',$detail['service_id'])->get()[0];
+                            //     DB::update('update deposit_services set available_qte = available_qte - ? where service_id = ? and deposit_id = ?',[$detail['quantity'],$detail['service_id'],$detail['deposit_id']]);
                                 
-                                StockHistoryController::create([
-                                    'service_id'=>$detail['service_id'],
-                                    'user_id'=>$invoice['edited_by_id'],
-                                    'invoice_id'=>$invoice['id'],
-                                    'quantity'=>$detail['quantity'],
-                                    'price'=>$detail['price'],
-                                    'type'=>'withdraw',
-                                    'type_approvement'=>$invoice['type_facture'],
-                                    'enterprise_id'=>$request['enterprise_id'],
-                                    'motif'=>'vente',
-                                    'depot_id'=>$detail['deposit_id'],
-                                    'quantity_before'=>$stockbefore->available_qte,
-                                ]);
-                            }
-                        }
+                            //     StockHistoryController::create([
+                            //         'service_id'=>$detail['service_id'],
+                            //         'user_id'=>$invoice['edited_by_id'],
+                            //         'invoice_id'=>$invoice['id'],
+                            //         'quantity'=>$detail['quantity'],
+                            //         'price'=>$detail['price'],
+                            //         'type'=>'withdraw',
+                            //         'type_approvement'=>$invoice['type_facture'],
+                            //         'enterprise_id'=>$request['enterprise_id'],
+                            //         'motif'=>'vente',
+                            //         'depot_id'=>$detail['deposit_id'],
+                            //         'quantity_before'=>$stockbefore->available_qte,
+                            //     ]);
+                            // }
+                        // }
                     }
                 }
                 //check if debt
-                if($invoice['type_facture']=='credit'){
-                    if($invoice['customer_id']>0){
-                        Debts::create([
-                            'created_by_id'=>$invoice['edited_by_id'],
-                            'customer_id'=>$invoice['customer_id'],
-                            'invoice_id'=>$invoice['id'],
-                            'status'=>'0',
-                            'amount'=>$invoice['total']-$invoice['amount_paid'],
-                            'sold'=>$invoice['total']-$invoice['amount_paid'],
-                            'uuid'=>$this->getUuId('D','C'),
-                            'sync_status'=>'1'
-                        ]);
-                    }
-                }
+                // if($invoice['type_facture']=='credit'){
+                //     if($invoice['customer_id']>0){
+                //         Debts::create([
+                //             'created_by_id'=>$invoice['edited_by_id'],
+                //             'customer_id'=>$invoice['customer_id'],
+                //             'invoice_id'=>$invoice['id'],
+                //             'status'=>'0',
+                //             'amount'=>$invoice['total']-$invoice['amount_paid'],
+                //             'sold'=>$invoice['total']-$invoice['amount_paid'],
+                //             'uuid'=>$this->getUuId('D','C'),
+                //             'sync_status'=>'1'
+                //         ]);
+                //     }
+                // }
 
                 return response()->json([
                     'data' =>$this->show($invoice),

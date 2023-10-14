@@ -26,6 +26,7 @@ class CreateCustomerControllersTable extends Migration
             $table->string('mail')->nullable();
             $table->integer('employer')->nullable();
             $table->string('type');
+            $table->string('uuid');
             $table->string('sex')->nullable();
             $table->bigInteger('enterprise_id')->unsigned();
             $table->foreign('enterprise_id')->references('id')->on('enterprises')->onDelete('cascade');

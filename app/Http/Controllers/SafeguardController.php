@@ -47,35 +47,35 @@ class SafeguardController extends Controller
     {
         //entries treatment
         $entries=[];
-        // $entryCtrl = new OtherEntriesController();
-        // foreach ($request['entries'] as $value) {
-        //     $newrequest= new StoreOtherEntriesRequest($value);
-        //     array_push($entries,$entryCtrl->store($newrequest));
-        // }
+        $entryCtrl = new OtherEntriesController();
+        foreach ($request['entries'] as $value) {
+            $newrequest= new StoreOtherEntriesRequest($value);
+            array_push($entries,$entryCtrl->store($newrequest));
+        }
 
         //expenditures treatment
         $expenditures=[];
-        // $expenditureCtrl = new ExpendituresController();
-        // foreach ($request['expenditures'] as $value) {
-        //     $newrequest = new StoreExpendituresRequest($value);
-        //     array_push($expenditures,$expenditureCtrl->store($newrequest));
-        // }
+        $expenditureCtrl = new ExpendituresController();
+        foreach ($request['expenditures'] as $value) {
+            $newrequest = new StoreExpendituresRequest($value);
+            array_push($expenditures,$expenditureCtrl->store($newrequest));
+        }
 
         //customers treatment
         $customers=[];
-        // $customerCtrl = new CustomerControllerController();
-        // foreach ($request['customers'] as $value) {
-        //     $newrequest = new StoreCustomerControllerRequest($value);
-        //     array_push($customers,$customerCtrl->store($newrequest));
-        // }
+        $customerCtrl = new CustomerControllerController();
+        foreach ($request['customers'] as $value) {
+            $newrequest = new StoreCustomerControllerRequest($value);
+            array_push($customers,$customerCtrl->store($newrequest));
+        }
 
         //stock histories treatment
         $stockhistories=[];
-        // $stockhistoryCtrl =  new StockHistoryControllerController();
-        // foreach ($request['stockHistories'] as $value) {
-        //     $newrequest = new StoreStockHistoryControllerRequest($value);
-        //     array_push($stockhistories,$stockhistoryCtrl->store($newrequest));
-        // }
+        $stockhistoryCtrl =  new StockHistoryControllerController();
+        foreach ($request['stockHistories'] as $value) {
+            $newrequest = new StoreStockHistoryControllerRequest($value);
+            array_push($stockhistories,$stockhistoryCtrl->store($newrequest));
+        }
 
         //invoices treatment
         $invoices=[];
@@ -90,6 +90,7 @@ class SafeguardController extends Controller
         $debtCtrl = new DebtsController();
         foreach ($request['debts'] as $value) {
             $newrequest = new StoreDebtsRequest($value);
+            $newrequest['type']='safeguard';
             array_push($debts,$debtCtrl->store($newrequest));
         }
 
@@ -98,6 +99,7 @@ class SafeguardController extends Controller
         $paymentCtrl = new DebtPaymentsController();
         foreach ($request['payments'] as $value) {
             $newrequest = new StoreDebtPaymentsRequest($value);
+            $newrequest['type']='safeguard';
             array_push($debts,$paymentCtrl->store($newrequest));
         }
 

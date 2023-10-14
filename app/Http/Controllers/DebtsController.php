@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDebtsRequest;
 use App\Http\Requests\UpdateDebtsRequest;
+use App\Models\Invoices;
 
 class DebtsController extends Controller
 {
@@ -43,7 +44,14 @@ class DebtsController extends Controller
      */
     public function store(StoreDebtsRequest $request)
     {
-        //
+        //safeguard
+        if ($request['type']=='safeguard') {
+            $invoice=Invoices::where('uuid','=',$request['invoiceUuid'])->first();
+            $request['invoice_id']= $invoice['id'];
+            $request['customer_id']= $invoice['customer_id'];
+            Invoices::create($request->all());
+        }
+
     }
 
     /**

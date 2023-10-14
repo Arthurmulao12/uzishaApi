@@ -25,6 +25,7 @@ class CreateFencesTable extends Migration
             $table->double('totaldebts')->nullable();
             $table->double('depositcautions')->nullable();
             $table->double('totalexpenditures')->nullable();
+            $table->double('totalentries')->nullable();
             $table->double('sold')->nullable();
             $table->integer('money_id')->nullable();
             $table->string('uuid')->nullable();

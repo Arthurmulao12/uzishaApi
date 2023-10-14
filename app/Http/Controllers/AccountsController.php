@@ -38,12 +38,12 @@ class AccountsController extends Controller
      */
     public function store(StoreAccountsRequest $request)
     {
-        $user = User::find(1);
+        // $user = User::find(1);
       
-        return response()->json([
-           'data'=>$user,
-           'token'=>'token'
-        ]);
+        // return response()->json([
+        //    'data'=>$user,
+        //    'token'=>'token'
+        // ]);
         return Accounts::create($request->all());
     }
 

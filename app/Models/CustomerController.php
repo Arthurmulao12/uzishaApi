@@ -21,6 +21,7 @@ class CustomerController extends Model
         'employer',
         'type',
         'sex',
-        'enterprise_id'  
+        'enterprise_id',
+        'uuid'  
     ];
 }
