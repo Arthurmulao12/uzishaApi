@@ -66,9 +66,9 @@ class RolesController extends Controller
      * @param  \App\Models\Roles  $Roles
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Roles $Roles)
+    public function update(Request $request, $id)
     {
-        $element = Roles::find($Roles);
+        $element = Roles::find($id);
         return $element->update($request->all());
     }
 
