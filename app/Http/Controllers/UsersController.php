@@ -11,10 +11,13 @@ use App\Models\OtherEntries;
 use Illuminate\Http\Request;
 use App\Models\usersenterprise;
 use App\Models\affectation_users;
+use App\Models\DebtPayments;
 use App\Models\DepositController;
 use App\Models\DepositsUsers;
 use App\Models\money_conversion;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use stdClass;
 
 class UsersController extends Controller
 {
@@ -71,7 +74,7 @@ class UsersController extends Controller
                     }
                 }
                 //credit
-                $credits=Invoices::whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('type_facture','=','credit')->where('enterprise_id','=',$ese['id'])->get();
+                $credits=Invoices::leftjoin('debts as D','invoices.id','=','D.invoice_id')->whereBetween('invoices.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('invoices.type_facture','=','credit')->where('invoices.enterprise_id','=',$ese['id'])->get(['invoices.*','D.sold']);
                 foreach ($credits as $invoice) {
                     if ($defautmoney['id']==$invoice['money_id']) {
                         $total_credits=$total_credits+$invoice['sold'];
@@ -141,6 +144,20 @@ class UsersController extends Controller
                         } 
                     }
                 }
+                //debts payment
+                $payments=DebtPayments::leftjoin('debts as D','debt_payments.debt_id','=','D.id')->join('invoices as I','D.invoice_id','=','I.id')->whereBetween('debt_payments.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('I.enterprise_id','=',$ese['id'])->get(['debt_payments.*','I.money_id']);
+                foreach ($payments as $payment) {
+                    if ($defautmoney['id']==$payment['money_id']) {
+                        $total_entries=$total_entries+$payment['amount_payed'];
+                    } else {
+                        $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$payment['money_id'])->first();
+                        if(!$rate){
+                            $total_entries=($total_entries+$payment['amount_payed'])*0;
+                        }else{
+                            $total_entries=($total_entries+$payment['amount_payed'])* $rate['rate'];
+                        } 
+                    }
+                }
                 //accounts
                 $accounts_list=Accounts::where('enterprise_id','=',$ese['id'])->get();
                 foreach ($accounts_list as $account) {
@@ -197,7 +214,7 @@ class UsersController extends Controller
                      }
                  }
                  //credit
-                 $credits=Invoices::where('edited_by_id','=',$userId)->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('type_facture','=','credit')->where('enterprise_id','=',$ese['id'])->get();
+                 $credits=Invoices::leftjoin('debts as D','invoices.id','=','D.invoice_id')->where('invoices.edited_by_id','=',$userId)->whereBetween('invoices.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('invoices.type_facture','=','credit')->where('invoices.enterprise_id','=',$ese['id'])->get(['invoices.*','D.sold']);
                  foreach ($credits as $invoice) {
                      if ($defautmoney['id']==$invoice['money_id']) {
                          $total_credits=$total_credits+$invoice['sold'];
@@ -267,6 +284,20 @@ class UsersController extends Controller
                          } 
                      }
                  }
+                 //debts payment
+                $payments=DebtPayments::leftjoin('debts as D','debt_payments.debt_id','=','D.id')->join('invoices as I','D.invoice_id','=','I.id')->where('debt_payments.done_by_id','=',$userId)->whereBetween('debt_payments.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('I.enterprise_id','=',$ese['id'])->get(['debt_payments.*','I.money_id']);
+                foreach ($payments as $payment) {
+                    if ($defautmoney['id']==$payment['money_id']) {
+                        $total_entries=$total_entries+$payment['amount_payed'];
+                    } else {
+                        $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$payment['money_id'])->first();
+                        if(!$rate){
+                            $total_entries=($total_entries+$payment['amount_payed'])*0;
+                        }else{
+                            $total_entries=($total_entries+$payment['amount_payed'])* $rate['rate'];
+                        } 
+                    }
+                }
                  //accounts
                  $accounts_list=Accounts::where('enterprise_id','=',$ese['id'])->get();
                  foreach ($accounts_list as $account) {
@@ -509,12 +540,23 @@ class UsersController extends Controller
     }
 
     public function login(Request $request){
-
+        $message='';
+        $actualEse= new stdClass;
         $user=User::leftjoin('usersenterprises as UE', 'users.id','=','UE.user_id')->leftjoin('roles as R', 'users.permissions','=','R.id')
         ->where('users.user_name',$request->user_name)
         ->where('users.user_password','=',$request->user_password)
         ->where('users.status','=','enabled')
         ->get(['users.*','UE.enterprise_id', 'permissions'=> 'R.*','R.title as role_title', 'R.description as role_description','id'=> 'users.id'])[0];
-        return $user;
+        if($user){
+            $message="success";
+            $actualEse=$this->getEse($user['id']);
+            if ($actualEse) {
+                $user['enterprise_id']=$actualEse['id'];
+            }
+            $user=$this->show($user);
+        }else{
+            $message='access denied';
+        }
+        return ['message'=>$message,'user'=>$user,'enterprise'=>$actualEse];
     }
 }

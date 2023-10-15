@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use Roles;
 use App\Models\User;
-use App\Models\Enterprises;
-use App\Models\DepositsUsers;
-use App\Models\DepositController;
-use App\Http\Requests\StoreEnterprisesRequest;
-use App\Http\Requests\UpdateEnterprisesRequest;
-use App\Models\Accounts;
-use App\Models\CategoriesCustomerController;
-use App\Models\CategoriesServicesController;
-use App\Models\DepositsCategories;
 use App\Models\funds;
 use App\Models\moneys;
+use App\Models\Accounts;
+use App\Models\Enterprises;
 use App\Models\PointOfSale;
+use App\Models\DepositsUsers;
 use App\Models\usersenterprise;
 use App\Models\UsersPointOfSale;
+use App\Models\DepositController;
+use App\Models\DepositsCategories;
+use Illuminate\Support\Facades\DB;
+use App\Models\Roles as ModelsRoles;
+use App\Models\CategoriesCustomerController;
+use App\Models\CategoriesServicesController;
+use App\Http\Requests\StoreEnterprisesRequest;
+use App\Http\Requests\UpdateEnterprisesRequest;
 
 class EnterprisesController extends Controller
 {
@@ -56,7 +59,18 @@ class EnterprisesController extends Controller
                 'user_id'=>$new->user_id,
                 'enterprise_id'=>$new->id
             ]);
-
+            //create role and give it to the owner
+            $role=ModelsRoles::create([
+                'title'=>$request['rules']['ruleSent']['title'],
+                'description'=>$request['rules']['ruleSent']['description'],
+                'user_id'=>$new->user_id,
+                'enterprise_id'=>$new->id,
+                'permissions'=>$request['rules']['ruleSent']['permissions']
+            ]);
+            //update owner with the new role created
+            if($role){
+                DB::update('update users set permissions = ? where id = ?',[$role['id'],$new->user_id]);
+            }
             //creating a default deposit
             $deposit=DepositController::create([
                'user_id'=>$new->user_id,

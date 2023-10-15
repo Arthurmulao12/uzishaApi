@@ -382,5 +382,6 @@ Route::get('/otherentries/doneby/{id}',[OtherEntriesController::class,'doneby'])
  */
 Route::apiResource('safeguards',SafeguardController::class);
 Route::resource('/role',RolesController::class);
+Route::post('/role/owner',[RolesController::class,'ruleForOwner']);
 Route::get('/role/enterprise/{id}',[RolesController::class,'index']);
 

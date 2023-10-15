@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Roles;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Nette\Utils\Json;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RolesController extends Controller
 {
@@ -15,7 +17,6 @@ class RolesController extends Controller
      */
     public function index($entreprise_id)
     {
-
         return Roles::where('enterprise_id', $entreprise_id)->get();
     }
 
@@ -29,6 +30,15 @@ class RolesController extends Controller
         //
     }
 
+    public function ruleForOwner(Request $request){
+        $userCtrl= new UsersController();
+        $request['enterprise_id']=$this->getEse($request['user_id']);
+        $newRule=Roles::create($request->all());
+        if ($newRule) {
+            DB::update('update users set permissions = ? where id = ?',[$newRule->id,$newRule->user_id]);
+        }
+       return $userCtrl->show(User::find($newRule->user_id)); 
+    }
     /**
      * Store a newly created resource in storage.
      *
