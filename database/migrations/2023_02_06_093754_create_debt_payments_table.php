@@ -20,6 +20,7 @@ class CreateDebtPaymentsTable extends Migration
             $table->double('amount_payed');
             $table->string('uuid')->nullable();
             $table->boolean('sync_status')->nullable();
+            $table->dateTimeTz('done_at')->nullable();
             $table->timestamps();
         });
     }

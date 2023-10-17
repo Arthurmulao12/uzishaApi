@@ -49,7 +49,7 @@ class StockHistoryControllerController extends Controller
     {
         $response=['message'=>'fail','data'=>[]];
 
-        if(isset($request['depot_id']) && $request['depot_id']>=1){
+        if(isset($request->depot_id) && ($request->depot_id)>=1){
            
         }else{
             //looking for it deposit
@@ -171,14 +171,12 @@ class StockHistoryControllerController extends Controller
                 ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
                 ->orderby('created_at','desc')
                 ->get());
-                $list_data=$list->map(function ($item,$key){
-                    return $this->show($item);
-                });
+                foreach ($list as $item) {
+                    array_push($list_data,$this->show($item));
+                }
              }
         }
         
-     
-     
         return $list_data;
      }
 

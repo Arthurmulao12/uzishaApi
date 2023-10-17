@@ -24,6 +24,7 @@ class CreateDebtsTable extends Migration
             $table->dateTime('maturity')->nullable();
             $table->string('uuid')->nullable();
             $table->boolean('sync_status')->nullable();
+            $table->dateTimeTz('done_at')->nullable();
             $table->timestamps();
         });
     }

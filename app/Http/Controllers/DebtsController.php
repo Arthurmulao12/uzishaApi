@@ -46,10 +46,15 @@ class DebtsController extends Controller
     {
         //safeguard
         if ($request['type']=='safeguard') {
-            $invoice=Invoices::where('uuid','=',$request['invoiceUuid'])->first();
+            $invoice=Invoices::where('uuid','=',$request['debt']['invoiceUuid'])->first();
             $request['invoice_id']= $invoice['id'];
             $request['customer_id']= $invoice['customer_id'];
-            Invoices::create($request->all());
+            $request['created_by_id']=$request['debt']['created_by_id'];
+            $request['amount']=$request['debt']['amount'];
+            $request['sold']=$request['debt']['sold'];
+            $request['uuid']=$request['debt']['uuid'];
+            $request['sync_status']=1;
+            Debts::create($request->all());
         }
 
     }

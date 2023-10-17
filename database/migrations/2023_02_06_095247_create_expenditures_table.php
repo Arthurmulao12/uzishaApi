@@ -26,6 +26,7 @@ class CreateExpendituresTable extends Migration
             $table->boolean('sync_status')->nullable();
             $table->bigInteger('enterprise_id')->unsigned();
             $table->foreign('enterprise_id')->references('id')->on('enterprises')->onDelete('cascade');
+            $table->dateTimeTz('done_at')->nullable();
             $table->timestamps();
         });
     }

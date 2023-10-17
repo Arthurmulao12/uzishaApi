@@ -52,7 +52,9 @@ class CustomerControllerController extends Controller
      */
     public function store(StoreCustomerControllerRequest $request)
     {
-        $request['uuid']=$this->getUuId('C','C');
+        if (!$request['uuid']) {
+            $request['uuid']=$this->getUuId('C','C');
+        }
         return $this->show(CustomerController::create($request->all()));
     }
 
