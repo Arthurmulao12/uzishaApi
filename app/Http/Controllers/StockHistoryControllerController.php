@@ -145,6 +145,7 @@ class StockHistoryControllerController extends Controller
      }
 
      public function getbyuser(Request $request){
+        $grouped_data=$this->getbyusergrouped($request);
         $list_data=[];
         $user=$this->getinfosuser($request['user_id']);
         $enterprise=$this->getEse($user['id']);
@@ -177,9 +178,59 @@ class StockHistoryControllerController extends Controller
              }
         }
         
-        return $list_data;
+        return ['ungrouped'=>$list_data,'grouped'=>$grouped_data,'services_group'=>[],'from'=>$request['from'],'to'=>$request['to']];
      }
+     
+     public function getbyusergrouped(Request $request){
+        $list_data=[];
+        $user=$this->getinfosuser($request['user_id']);
+        $enterprise=$this->getEse($user['id']);
+        if(empty($request->from) && empty($request->to)){
+            $request['from']= date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        }
 
+        if ($user['user_type']=='super_admin') {
+            $deposits=DepositController::where('enterprise_id','=',$enterprise['id'])->get();
+            foreach ($deposits as $deposit) {
+                $depositArray=['deposit'=>$deposit,'articles'=>[]];
+
+                $articles= DB::table('stock_history_controllers')
+                    ->leftjoin('services_controllers as S','stock_history_controllers.service_id','=','S.id')
+                    ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                    ->where('stock_history_controllers.depot_id','=',$deposit['id'])
+                    ->whereBetween('stock_history_controllers.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                    ->select('stock_history_controllers.service_id','S.name','UOM.symbol',DB::raw('sum(stock_history_controllers.quantity) as quantity_total'))
+                    ->groupBy('stock_history_controllers.service_id','S.name','UOM.symbol')
+                    ->get();
+                    foreach ($articles as $key => $value) {
+                        array_push($depositArray['articles'],$value);
+                    }
+                    array_push($list_data,$depositArray);
+            }
+        } else {
+            $deposits=DepositsUsers::join('deposit_controllers as D','deposits_users.deposit_id','=','D.id')->where('deposits_users.user_id','=',$request->user_id)->get('D.*');
+            foreach ($deposits as $deposit) {
+                $depositArray=['deposit'=>$deposit,'articles'=>[]];
+
+                $articles= DB::table('stock_history_controllers')
+                    ->leftjoin('services_controllers as S','stock_history_controllers.service_id','=','S.id')
+                    ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                    ->where('stock_history_controllers.depot_id','=',$deposit['id'])
+                    ->whereBetween('stock_history_controllers.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                    ->select('stock_history_controllers.service_id','S.name','UOM.symbol',DB::raw('sum(stock_history_controllers.quantity) as quantity_total'))
+                    ->groupBy('stock_history_controllers.service_id','S.name','UOM.symbol')
+                    ->get();
+                    foreach ($articles as $key => $value) {
+                        array_push($depositArray['articles'],$value);
+                    }
+                    array_push($list_data,$depositArray);
+             }
+        }
+        
+        return $list_data;
+     } 
+     
      public function fordeposit(Request $request){
 
         $list=collect(StockHistoryController::where('depot_id','=',$request->deposit_id)->orderby('created_at','desc')->get());

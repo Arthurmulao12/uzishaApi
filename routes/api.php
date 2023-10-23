@@ -237,6 +237,8 @@ Route::apiResource('stockhistory',StockHistoryControllerController::class);
 Route::get('/stockhistory/enterprise/{id}',[StockHistoryControllerController::class,'index']);
 Route::get('/stockhistory/serviceid/{serviceid}',[StockHistoryControllerController::class,'getbyservice']);
 Route::post('/stockhistory/byuser',[StockHistoryControllerController::class,'getbyuser']);
+Route::post('/stockhistory/byuser/grouped',[StockHistoryControllerController::class,'getbyusergrouped']);
+Route::post('/stockhistory/expiration',[StockHistoryControllerController::class,'reportexpiration']);
 Route::post('/stockhistory/fordeposit',[StockHistoryControllerController::class,'fordeposit']);
 Route::post('/stockhistory/multipleservices',[StockHistoryControllerController::class,'multipleservices']);
 
