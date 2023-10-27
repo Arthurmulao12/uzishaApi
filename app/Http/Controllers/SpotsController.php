@@ -13,9 +13,9 @@ class SpotsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return spots::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class SpotsController extends Controller
      */
     public function store(StorespotsRequest $request)
     {
-        //
+        return spots::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class SpotsController extends Controller
      */
     public function show(spots $spots)
     {
-        //
+        return spots::find($spots);
     }
 
     /**
@@ -70,7 +70,7 @@ class SpotsController extends Controller
      */
     public function update(UpdatespotsRequest $request, spots $spots)
     {
-        //
+        return $this->show(spots::find($spots)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class SpotsController extends Controller
      */
     public function destroy(spots $spots)
     {
-        //
+        return $spots->delete();
     }
 }

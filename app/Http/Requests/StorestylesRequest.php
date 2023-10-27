@@ -13,7 +13,7 @@ class StorestylesRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,9 @@ class StorestylesRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name'=>'required',
+            'user_id'=>'required',
+            'enterprise_id'=>'required',
         ];
     }
 }

@@ -13,9 +13,9 @@ class MaterialsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return materials::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class MaterialsController extends Controller
      */
     public function store(StorematerialsRequest $request)
     {
-        //
+        return materials::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class MaterialsController extends Controller
      */
     public function show(materials $materials)
     {
-        //
+        return materials::find($materials);
     }
 
     /**
@@ -70,7 +70,7 @@ class MaterialsController extends Controller
      */
     public function update(UpdatematerialsRequest $request, materials $materials)
     {
-        //
+        return $this->show(materials::find($materials)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class MaterialsController extends Controller
      */
     public function destroy(materials $materials)
     {
-        //
+        return $materials->delete();
     }
 }

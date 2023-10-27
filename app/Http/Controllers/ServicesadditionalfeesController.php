@@ -13,9 +13,9 @@ class ServicesadditionalfeesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return servicesadditionalfees::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class ServicesadditionalfeesController extends Controller
      */
     public function store(StoreservicesadditionalfeesRequest $request)
     {
-        //
+        return servicesadditionalfees::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class ServicesadditionalfeesController extends Controller
      */
     public function show(servicesadditionalfees $servicesadditionalfees)
     {
-        //
+        return servicesadditionalfees::find($servicesadditionalfees);
     }
 
     /**
@@ -70,7 +70,7 @@ class ServicesadditionalfeesController extends Controller
      */
     public function update(UpdateservicesadditionalfeesRequest $request, servicesadditionalfees $servicesadditionalfees)
     {
-        //
+        return $this->show(servicesadditionalfees::find($servicesadditionalfees)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class ServicesadditionalfeesController extends Controller
      */
     public function destroy(servicesadditionalfees $servicesadditionalfees)
     {
-        //
+        return $servicesadditionalfees->delete();    
     }
 }

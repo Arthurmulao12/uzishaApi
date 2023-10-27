@@ -13,7 +13,7 @@ class StoreservicesadditionalfeesRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,11 @@ class StoreservicesadditionalfeesRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name'=>'required',
+            'service_id'=>'required',
+            'price'=>'required',
+            'user_id'=>'required',
+            'enterprise_id'=>'required',
         ];
     }
 }

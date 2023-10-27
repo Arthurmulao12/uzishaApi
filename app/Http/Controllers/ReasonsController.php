@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\reasons;
 use App\Http\Requests\StorereasonsRequest;
 use App\Http\Requests\UpdatereasonsRequest;
+use App\Models\spots;
 
 class ReasonsController extends Controller
 {
@@ -13,9 +14,9 @@ class ReasonsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return reasons::where('enterprise_id','=',$enterpriseId);
     }
 
     /**
@@ -36,7 +37,7 @@ class ReasonsController extends Controller
      */
     public function store(StorereasonsRequest $request)
     {
-        //
+        return reasons::create($request->all());
     }
 
     /**
@@ -47,7 +48,7 @@ class ReasonsController extends Controller
      */
     public function show(reasons $reasons)
     {
-        //
+        return reasons::find($reasons);
     }
 
     /**
@@ -70,7 +71,7 @@ class ReasonsController extends Controller
      */
     public function update(UpdatereasonsRequest $request, reasons $reasons)
     {
-        //
+        return $this->show(reasons::find($reasons)->update($request->all()));
     }
 
     /**
@@ -81,6 +82,6 @@ class ReasonsController extends Controller
      */
     public function destroy(reasons $reasons)
     {
-        //
+        return $reasons->delete();
     }
 }

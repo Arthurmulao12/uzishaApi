@@ -16,8 +16,8 @@ class CreateColorsTable extends Migration
         Schema::create('colors', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('code');
-            $table->boolean('showonquickbar');
+            $table->string('code')->nullable();
+            $table->boolean('showonquickbar')->nullable();
             $table->bigInteger('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
             $table->bigInteger('enterprise_id')->unsigned();

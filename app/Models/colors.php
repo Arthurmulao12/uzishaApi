@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class colors extends Model
 {
     use HasFactory;
+   protected $fillable=[
+    'name',
+    'code',
+    'showonquickbar',
+    'user_id',
+   'user_id',
+    'enterprise_id'
+   ];
 }

@@ -13,9 +13,9 @@ class StylesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return styles::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class StylesController extends Controller
      */
     public function store(StorestylesRequest $request)
     {
-        //
+        return styles::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class StylesController extends Controller
      */
     public function show(styles $styles)
     {
-        //
+        return styles::find($styles);
     }
 
     /**
@@ -70,7 +70,7 @@ class StylesController extends Controller
      */
     public function update(UpdatestylesRequest $request, styles $styles)
     {
-        //
+        return $this->show(styles::find($styles)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class StylesController extends Controller
      */
     public function destroy(styles $styles)
     {
-        //
+        return $styles->delete();
     }
 }

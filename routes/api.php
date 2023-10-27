@@ -7,18 +7,25 @@ use App\Models\UnitOfMeasureController;
 use App\Http\Controllers\BonusController;
 use App\Http\Controllers\DebtsController;
 use App\Http\Controllers\FundsController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\SpotsController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\ColorsController;
 use App\Http\Controllers\FencesController;
 use App\Http\Controllers\MoneysController;
 use App\Http\Controllers\OwnersController;
 use App\Http\Controllers\PointsController;
+use App\Http\Controllers\StylesController;
 use App\Http\Controllers\TablesController;
+use App\Http\Controllers\DefectsController;
 use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\CautionsController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\RequestsController;
 use App\Http\Controllers\ServantsController;
+use App\Http\Controllers\MaterialsController;
+use App\Http\Controllers\SafeguardController;
 use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\EnterprisesController;
 use App\Http\Controllers\PointOfSaleController;
@@ -37,7 +44,6 @@ use App\Http\Controllers\InvoiceDetailsController;
 use App\Http\Controllers\RequestHistoryController;
 use App\Http\Controllers\SelfReferencesController;
 use App\Http\Controllers\TransfertstockController;
-use App\Http\Controllers\RequestapprovmentsController;
 use App\Http\Controllers\MoneyConversionController;
 use App\Http\Controllers\SubDepartementsController;
 use App\Http\Controllers\AffectationUsersController;
@@ -48,6 +54,7 @@ use App\Http\Controllers\RequestReferencesController;
 use App\Http\Controllers\UsersTicketOfficeController;
 use App\Http\Controllers\CustomerControllerController;
 use App\Http\Controllers\ProviderControllerController;
+use App\Http\Controllers\RequestapprovmentsController;
 use App\Http\Controllers\ServicesControllerController;
 use App\Http\Controllers\DecisionDecisionteamController;
 use App\Http\Controllers\StockHistoryControllerController;
@@ -58,8 +65,8 @@ use App\Http\Controllers\DecisionChiefdepartmentsController;
 use App\Http\Controllers\NbrdecisionteamValidationController;
 use App\Http\Controllers\CategoriesCustomerControllerController;
 use App\Http\Controllers\CategoriesServicesControllerController;
-use App\Http\Controllers\RolesController;
-use App\Http\Controllers\SafeguardController;
+use App\Http\Controllers\ServicesadditionalfeesController;
+use OpenApi\Annotations\AdditionalProperties;
 
 /*
 |--------------------------------------------------------------------------
@@ -387,3 +394,25 @@ Route::resource('/role',RolesController::class);
 Route::post('/role/owner',[RolesController::class,'ruleForOwner']);
 Route::get('/role/enterprise/{id}',[RolesController::class,'index']);
 
+/**
+ * Pressings
+ */
+
+ //Colors
+Route::apiResource('colors',ColorsController::class);
+Route::get('/colors/enterprise/{enterpriseid}',[ColorsController::class,'index']);
+//Defects
+Route::apiResource('defects',DefectsController::class);
+Route::get('/defects/enterprise/{enterpriseid}',[DefectsController::class,'index']);
+//Spots
+Route::apiResource('spots',SpotsController::class);
+Route::get('/spots/enterprise/{enterpriseid}',[SpotsController::class,'index']);
+//Styles
+Route::apiResource('styles',StylesController::class);
+Route::get('/styles/enterprise/{enterpriseid}',[StylesController::class,'index']);
+//materials
+Route::apiResource('materials',MaterialsController::class);
+Route::get('/materials/enterprise/{enterpriseid}',[MaterialsController::class,'index']);
+//additional services fees
+Route::apiResource('additionalfees',ServicesadditionalfeesController::class);
+Route::get('/additionalfees/enterprise/{enterpriseid}',[ServicesadditionalfeesController::class,'index']);

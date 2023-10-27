@@ -13,9 +13,9 @@ class DefectsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return defects::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class DefectsController extends Controller
      */
     public function store(StoredefectsRequest $request)
     {
-        //
+        return defects::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class DefectsController extends Controller
      */
     public function show(defects $defects)
     {
-        //
+        return defects::find($defects);
     }
 
     /**
@@ -70,7 +70,7 @@ class DefectsController extends Controller
      */
     public function update(UpdatedefectsRequest $request, defects $defects)
     {
-        //
+        return $this->show(defects::find($defects)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class DefectsController extends Controller
      */
     public function destroy(defects $defects)
     {
-        //
+        return $defects->delete();
     }
 }

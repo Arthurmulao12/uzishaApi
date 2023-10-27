@@ -13,9 +13,9 @@ class ColorsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterpriseId)
     {
-        //
+        return colors::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -36,7 +36,7 @@ class ColorsController extends Controller
      */
     public function store(StorecolorsRequest $request)
     {
-        //
+        return colors::create($request->all());
     }
 
     /**
@@ -47,7 +47,7 @@ class ColorsController extends Controller
      */
     public function show(colors $colors)
     {
-        //
+        return colors::find($colors);
     }
 
     /**
@@ -70,7 +70,7 @@ class ColorsController extends Controller
      */
     public function update(UpdatecolorsRequest $request, colors $colors)
     {
-        //
+        return $this->show(colors::find($colors)->update($request->all()));
     }
 
     /**
@@ -81,6 +81,6 @@ class ColorsController extends Controller
      */
     public function destroy(colors $colors)
     {
-        //
+        return colors::destroy($colors);
     }
 }
