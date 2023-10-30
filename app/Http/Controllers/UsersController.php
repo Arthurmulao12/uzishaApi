@@ -28,11 +28,6 @@ class UsersController extends Controller
             return $this->show(user::find($item['user_id']));
         });
         return $listdata;
-        // $list=collect(User::join('usersenterprises as UE', 'users.id','=','UE.user_id')->where('UE.enterprise_id','=',$enterprise_id)->get());
-        // $listdata=$list->map(function ($item,$key){
-        //     return $this->show($item);
-        // });
-        // return $listdata;
     }
 
     public function dashboard(Request $request,$userId){

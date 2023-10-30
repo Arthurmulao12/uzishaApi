@@ -51,6 +51,7 @@ class EnterprisesController extends Controller
      */
     public function store(StoreEnterprisesRequest $request)
     {
+        $userCtrl = new UsersController();
         $new=Enterprises::create($request->all());
 
         if($new){
@@ -253,8 +254,9 @@ class EnterprisesController extends Controller
                 'user_id'=>$new->user_id
             ]);
         }
-
-        return $new;
+        $request['user_name']=$this->getinfosuser($new->user_id)['user_name'];
+        $request['user_password']=$this->getinfosuser($new->user_id)['user_password'];
+        return $userCtrl->login($request);
     }
 
     /**

@@ -391,8 +391,10 @@ Route::get('/otherentries/doneby/{id}',[OtherEntriesController::class,'doneby'])
  */
 Route::apiResource('safeguards',SafeguardController::class);
 Route::resource('/role',RolesController::class);
+Route::delete('/role/delete/{id}',[RolesController::class,'destroy2']);
 Route::post('/role/owner',[RolesController::class,'ruleForOwner']);
 Route::get('/role/enterprise/{id}',[RolesController::class,'index']);
+Route::get('/role/permissions/{id}',[RolesController::class,'gerpermissions']);
 
 /**
  * Pressings

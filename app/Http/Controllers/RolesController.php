@@ -17,7 +17,7 @@ class RolesController extends Controller
      */
     public function index($entreprise_id)
     {
-        return Roles::where('enterprise_id', $entreprise_id)->get();
+        return Roles::where('enterprise_id', $entreprise_id)->get(['id','title','description','user_id','enterprise_id']);
     }
 
     /**
@@ -30,6 +30,9 @@ class RolesController extends Controller
         //
     }
 
+    public function gerpermissions($idRole){
+        return Roles::where('id', $idRole)->get('permissions')->first();
+    }
     public function ruleForOwner(Request $request){
         $userCtrl= new UsersController();
         $request['enterprise_id']=$this->getEse($request['user_id']);
@@ -91,5 +94,9 @@ class RolesController extends Controller
     public function destroy(Roles $Roles)
     {
         return Roles::destroy($Roles);
+    }
+
+    public function destroy2($idRole){
+        return Roles::find($idRole)->delete();
     }
 }
