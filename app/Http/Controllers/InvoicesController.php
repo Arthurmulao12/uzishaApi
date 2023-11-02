@@ -184,15 +184,16 @@ class InvoicesController extends Controller
 
     public function storebySafeGuard(StoreInvoicesRequest $request){
 
-        $User=$this->getinfosuser($request['edited_by_id']);
-        $Ese=$this->getEse($request['edited_by_id']);
+        $User=$this->getinfosuser($request['invoice']['edited_by_id']);
+        $Ese=$this->getEse($request['invoice']['edited_by_id']);
         if($User && $Ese){
             if($this->isactivatedEse($Ese['id'])){
-                $invoice=Invoices::create($request->all());
-                if(isset($request->customer_uuid) && !empty($request->customer_uuid) && $request->customer_uuid==0){
-                    $customer=CustomerController::where('uuid','=',$request->customer_uuid)->first();
-                    $request['customer_id']= $customer['id'];
+                if(isset($request['invoice']['customer_uuid']) && !empty($request['invoice']['customer_uuid']) && $request['invoice']['customer_id']==0){
+                    $customer=CustomerController::where('uuid','=',$request['invoice']['customer_uuid'])->get()->first();
+                    $request['invoice']['customer_id']=$customer->id;
                 }
+                $invoice=Invoices::create($request['invoice']);
+                
                 //enregistrement des details
                 if(isset($request->details)){
                     foreach ($request->details as $detail) {

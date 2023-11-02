@@ -301,6 +301,7 @@ Route::get('/customers/enterprise/{id}',[CustomerControllerController::class,'in
 Route::put('/customers/update/{id}',[CustomerControllerController::class,'update2']);
 Route::patch('/customers/update/{id}',[CustomerControllerController::class,'update2']);
 Route::delete('/customers/delete/{id}',[CustomerControllerController::class,'delete']);
+Route::post('/customers/uuid',[CustomerControllerController::class,'getbyuuid']);
 
 //PROVIDERS
 Route::apiResource('providers',ProviderControllerController::class);

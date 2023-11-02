@@ -118,5 +118,9 @@ class CustomerControllerController extends Controller
         $custom=CustomerController::find($customer);
         return $custom->delete();
     }
+
+    public function getbyuuid(Request $request){
+        return CustomerController::where('uuid','=',$request['uuid'])->get()->first();
+    }
    
 }

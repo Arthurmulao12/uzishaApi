@@ -12,6 +12,7 @@ use App\Models\FenceTicketing;
 use App\Models\Invoices;
 use App\Models\OtherEntries;
 use Illuminate\Http\Request;
+use stdClass;
 
 class FencesController extends Controller
 {
@@ -34,12 +35,13 @@ class FencesController extends Controller
      */
     public function dataforfencing(Request $request){
         $message='';
+        $fence= new stdClass;
         if(isset($request->date_concerned) && isset($request->user_id) && !empty($request->date_concerned) && !empty($request->user_id)){
             //test if already fenced?
             $ifexists=Fences::where('user_id','=',$request->user_id)->where('date_concerned','=',$request->date_concerned)->get();
             if(count($ifexists)>0){
                 $message="already_fenced";
-                return $message;
+                return ['message'=>$message,'fence'=>$fence];
             }else{
                 $sells=Invoices::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
                 // ->where('type_facture','=','cash')->orWhere('type_facture','=','credit')
@@ -58,7 +60,7 @@ class FencesController extends Controller
                 ->where('user_id','=',$request->user_id)->get();
 
                 $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions,'entries'=>$entries];
-                return $objet;
+                return ['message'=>$message,'fence'=>$objet];
             }
         }
         else if(isset($request->user_id) && !empty($request->user_id) && empty($request->date_concerned)){
@@ -67,7 +69,7 @@ class FencesController extends Controller
               $ifexists=Fences::where('user_id','=',$request->user_id)->where('date_concerned','=',$date_concerned)->get();
               if(count($ifexists)>0){
                   $message="already_fenced";
-                  return $message;
+                  return ['message'=>$message,'fence'=>$fence];
               }else{
                   $sells=Invoices::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
                   // ->where('type_facture','=','cash')->orWhere('type_facture','=','credit')
@@ -86,12 +88,12 @@ class FencesController extends Controller
                   ->where('user_id','=',$request->user_id)->get();
   
                   $objet =['sells'=>$sells,'payments'=>$payments,'expenditures'=>$expenditures,'cautions'=>$cautions,'entries'=>$entries];
-                  return $objet;
+                  return ['message'=>$message,'fence'=>$objet];
               }
         }
         else{
             $message="data_no_conform";
-            return $message;
+            return ['message'=>$message,'fence'=>$fence];
         }
     }
     /**
