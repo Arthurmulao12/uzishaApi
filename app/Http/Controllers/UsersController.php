@@ -119,15 +119,20 @@ class UsersController extends Controller
                 //fences
                 $fences=Fences::join('users as U','fences.user_id','=','U.id')->whereBetween('fences.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('enterprise_id','=',$ese['id'])->get(['fences.*','U.user_name','U.avatar']);
                 foreach ($fences as $fence) {
-                    if ($defautmoney['id']==$fence['money_id']) {
-                        $total_fences=$total_fences+$fence['amount_due'];
-                    } else {
-                        $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$fence['money_id'])->first();
-                        if(!$rate){
-                            $total_fences=($total_fences+$fence['amount_due'])*0;
-                        }else{
-                            $total_fences=($total_fences+$fence['amount_amount'])* $rate['rate'];
-                        } 
+                    if(isset($fence['money_id'])){
+                        if ($defautmoney['id']==$fence['money_id']) {
+                            $total_fences=$total_fences+$fence['sold'];
+                        } else {
+                            $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$fence['money_id'])->first();
+                            if(!$rate){
+                                $total_fences=($total_fences+$fence['sold'])*0;
+                            }else{
+                                $total_fences=($total_fences+$fence['sold'])* $rate['rate'];
+                            } 
+                        }
+                    } 
+                    else{
+                        $total_fences=$total_fences+$fence['sold']; 
                     }
                 }
                 //debts
@@ -259,16 +264,21 @@ class UsersController extends Controller
                  //fences
                  $fences=Fences::where('fences.user_id','=',$userId)->join('users as U','fences.user_id','=','U.id')->whereBetween('fences.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('enterprise_id','=',$ese['id'])->get(['fences.*','U.user_name','U.avatar']);
                  foreach ($fences as $fence) {
-                     if ($defautmoney['id']==$fence['money_id']) {
-                         $total_fences=$total_fences+$fence['amount_due'];
-                     } else {
-                         $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$fence['money_id'])->first();
-                         if(!$rate){
-                             $total_fences=($total_fences+$fence['amount_due'])*0;
-                         }else{
-                             $total_fences=($total_fences+$fence['amount_amount'])* $rate['rate'];
-                         } 
-                     }
+                    if(isset($fence['money_id'])){
+                        if ($defautmoney['id']==$fence['money_id']) {
+                            $total_fences=$total_fences+$fence['sold'];
+                        } else {
+                            $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$fence['money_id'])->first();
+                            if(!$rate){
+                                $total_fences=($total_fences+$fence['sold'])*0;
+                            }else{
+                                $total_fences=($total_fences+$fence['sold'])* $rate['rate'];
+                            } 
+                        }
+                    } 
+                    else{
+                        $total_fences=$total_fences+$fence['sold']; 
+                    }
                  }
                  //debts
                  $debts=Debts::where('debts.created_by_id','=',$userId)->join('invoices as I','debts.invoice_id','=','I.id')->leftjoin('customer_controllers as C','debts.customer_id','=','C.id')->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('I.enterprise_id','=',$ese['id'])->get(['debts.*','C.customerName','I.money_id']);
