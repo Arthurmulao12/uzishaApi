@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\styles;
 use App\Http\Requests\StorestylesRequest;
 use App\Http\Requests\UpdatestylesRequest;
+use Illuminate\Http\Request;
 
 class StylesController extends Controller
 {
@@ -73,6 +74,16 @@ class StylesController extends Controller
         return $this->show(styles::find($styles)->update($request->all()));
     }
 
+      /**
+     * update 2
+     */
+    public function update2(Request $request,$id)
+    {
+        $color=styles::find($id);
+        $color->update($request->all());
+
+        return $this->show($color);
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -82,5 +93,14 @@ class StylesController extends Controller
     public function destroy(styles $styles)
     {
         return $styles->delete();
+    }
+
+    /**
+     * Delete
+     */
+    public function destroy2($id)
+    {
+        $get=styles::find($id);
+        return $get->delete();
     }
 }

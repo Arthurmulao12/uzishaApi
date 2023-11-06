@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\materials;
 use App\Http\Requests\StorematerialsRequest;
 use App\Http\Requests\UpdatematerialsRequest;
+use Illuminate\Http\Request;
 
 class MaterialsController extends Controller
 {
@@ -47,7 +48,7 @@ class MaterialsController extends Controller
      */
     public function show(materials $materials)
     {
-        return materials::find($materials);
+        return materials::find($materials->id);
     }
 
     /**
@@ -74,6 +75,16 @@ class MaterialsController extends Controller
     }
 
     /**
+     * update 2
+     */
+    public function update2(Request $request,$id)
+    {
+        $color=materials::find($id);
+        $color->update($request->all());
+
+        return $this->show($color);
+    }
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\materials  $materials
@@ -82,5 +93,14 @@ class MaterialsController extends Controller
     public function destroy(materials $materials)
     {
         return $materials->delete();
+    }
+
+     /**
+     * Delete
+     */
+    public function destroy2($id)
+    {
+        $get=materials::find($id);
+        return $get->delete();
     }
 }

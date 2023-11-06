@@ -29,8 +29,7 @@ class ServicesControllerController extends Controller
 /**
  * turning back articles for users
  */
-    public function services_list(Request $request){
-       $listdata=[];
+    public function services_list(Request $request){ $listdata=[];
         if($request['user_id']){
             $user=$this->getinfosuser($request['user_id']);
             $Ese=$this->getEse($request['user_id']);
@@ -68,6 +67,7 @@ class ServicesControllerController extends Controller
             }
         }
         return $listdata;
+      
     }
 
     public function articlesdeposit($deposit){
@@ -409,7 +409,6 @@ class ServicesControllerController extends Controller
     
     public function destroy2($id)
     {
-
         $get=ServicesController::find($id);
         //delete all affectations on deposit
         PricesCategories::where('service_id','=',$id)->delete();

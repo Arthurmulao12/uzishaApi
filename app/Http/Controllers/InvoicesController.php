@@ -116,63 +116,18 @@ class InvoicesController extends Controller
         $Ese=$this->getEse($request['edited_by_id']);
         if($User && $Ese){
             if($this->isactivatedEse($Ese['id'])){
-                $request['uuid']=$this->getUuId('F','C');
-                $invoice=Invoices::create($request->all());
-
-                //enregistrement des details
-                if(isset($request->details)){
-                    foreach ($request->details as $detail) {
-                        $detail['invoice_id']=$invoice['id'];
-                        $detail['total']=$detail['quantity']*$detail['price'];
-                        InvoiceDetails::create($detail);
-                        if((isset($request->type_facture) && $request->type_facture=='cash') || (isset($request->type_facture) && $request->type_facture=='credit') )
-                        {
-                            if(isset($detail['type_service']) && $detail['type_service']=='1'){
-                                $stockbefore=DepositServices::where('deposit_id','=',$detail['deposit_id'])->where('service_id','=',$detail['service_id'])->get()[0];
-                                DB::update('update deposit_services set available_qte = available_qte - ? where service_id = ? and deposit_id = ?',[$detail['quantity'],$detail['service_id'],$detail['deposit_id']]);
-                                
-                                StockHistoryController::create([
-                                    'service_id'=>$detail['service_id'],
-                                    'user_id'=>$invoice['edited_by_id'],
-                                    'invoice_id'=>$invoice['id'],
-                                    'quantity'=>$detail['quantity'],
-                                    'price'=>$detail['price'],
-                                    'type'=>'withdraw',
-                                    'type_approvement'=>$invoice['type_facture'],
-                                    'enterprise_id'=>$request['enterprise_id'],
-                                    'motif'=>'vente',
-                                    'depot_id'=>$detail['deposit_id'],
-                                    'quantity_before'=>$stockbefore->available_qte,
-                                ]);
-                            }
-                        }
-                    }
-                }
-                //check if debt
-                if($invoice['type_facture']=='credit'){
-                    if($invoice['customer_id']>0){
-                        Debts::create([
-                            'created_by_id'=>$invoice['edited_by_id'],
-                            'customer_id'=>$invoice['customer_id'],
-                            'invoice_id'=>$invoice['id'],
-                            'status'=>'0',
-                            'amount'=>$invoice['total']-$invoice['amount_paid'],
-                            'sold'=>$invoice['total']-$invoice['amount_paid'],
-                            'uuid'=>$this->getUuId('D','C'),
-                            'sync_status'=>'1'
-                        ]);
-                    }
-                }
-
-                return response()->json([
-                    'data' =>$this->show($invoice),
-                    'message'=>'can make invoice'
-                ]);
+                return $this->saveInvoice($request);
             }else{
-                return response()->json([
-                    'data' =>'',
-                    'message'=>'enterprise disabled'
-                ]);
+                //count numbers of invoices done
+                $sumInvoices =Invoices::select(DB::raw('count(*) as number'))->where('enterprise_id','=',$Ese['id'])->get('number')->first();
+                if ($sumInvoices['number']>=500) {
+                    return response()->json([
+                        'data' =>'',
+                        'message'=>'invoices number exceeded'
+                    ]);
+                }else{
+                    return $this->saveInvoice($request);
+                }
             }
         }else{
             return response()->json([
@@ -182,35 +137,81 @@ class InvoicesController extends Controller
         }
     }
 
-    public function storebySafeGuard(StoreInvoicesRequest $request){
+    public function saveInvoice(StoreInvoicesRequest $request){
+             
+            $request['uuid']=$this->getUuId('F','C');
+            $invoice=Invoices::create($request->all());
+            //enregistrement des details
+            if(isset($request->details)){
+                foreach ($request->details as $detail) {
+                    $detail['invoice_id']=$invoice['id'];
+                    $detail['total']=$detail['quantity']*$detail['price'];
+                    InvoiceDetails::create($detail);
+                    if((isset($request->type_facture) && $request->type_facture=='cash') || (isset($request->type_facture) && $request->type_facture=='credit') )
+                    {
+                        if(isset($detail['type_service']) && $detail['type_service']=='1'){
+                            $stockbefore=DepositServices::where('deposit_id','=',$detail['deposit_id'])->where('service_id','=',$detail['service_id'])->get()[0];
+                            DB::update('update deposit_services set available_qte = available_qte - ? where service_id = ? and deposit_id = ?',[$detail['quantity'],$detail['service_id'],$detail['deposit_id']]);
+                            
+                            StockHistoryController::create([
+                                'service_id'=>$detail['service_id'],
+                                'user_id'=>$invoice['edited_by_id'],
+                                'invoice_id'=>$invoice['id'],
+                                'quantity'=>$detail['quantity'],
+                                'price'=>$detail['price'],
+                                'type'=>'withdraw',
+                                'type_approvement'=>$invoice['type_facture'],
+                                'enterprise_id'=>$request['enterprise_id'],
+                                'motif'=>'vente',
+                                'depot_id'=>$detail['deposit_id'],
+                                'quantity_before'=>$stockbefore->available_qte,
+                            ]);
+                        }
+                    }
+                }
+            }
+            //check if debt
+            if($invoice['type_facture']=='credit'){
+                if($invoice['customer_id']>0){
+                    Debts::create([
+                        'created_by_id'=>$invoice['edited_by_id'],
+                        'customer_id'=>$invoice['customer_id'],
+                        'invoice_id'=>$invoice['id'],
+                        'status'=>'0',
+                        'amount'=>$invoice['total']-$invoice['amount_paid'],
+                        'sold'=>$invoice['total']-$invoice['amount_paid'],
+                        'uuid'=>$this->getUuId('D','C'),
+                        'sync_status'=>'1'
+                    ]);
+                }
+            }
 
+            return response()->json([
+                'data' =>$this->show($invoice),
+                'message'=>'can make invoice'
+            ]);
+    }
+
+    /**
+     * Saving Offline invoices
+     */
+    public function storebySafeGuard(StoreInvoicesRequest $request){
         $User=$this->getinfosuser($request['invoice']['edited_by_id']);
         $Ese=$this->getEse($request['invoice']['edited_by_id']);
         if($User && $Ese){
             if($this->isactivatedEse($Ese['id'])){
-                if(isset($request['invoice']['customer_uuid']) && !empty($request['invoice']['customer_uuid']) && $request['invoice']['customer_id']==0){
-                    $customer=CustomerController::where('uuid','=',$request['invoice']['customer_uuid'])->get()->first();
-                    $request['invoice']['customer_id']=$customer->id;
-                }
-                $invoice=Invoices::create($request['invoice']);
-                
-                //enregistrement des details
-                if(isset($request->details)){
-                    foreach ($request->details as $detail) {
-                        $detail['invoice_id']=$invoice['id'];
-                        $detail['total']=$detail['quantity']*$detail['price'];
-                        InvoiceDetails::create($detail);
-                    }
-                }
-                return response()->json([
-                    'data' =>$this->show($invoice),
-                    'message'=>'can make invoice'
-                ]);
+                return $this->saveOfflineInvoice($request);
             }else{
-                return response()->json([
-                    'data' =>'',
-                    'message'=>'enterprise disabled'
-                ]);
+                //count numbers of invoices done
+                $sumInvoices =Invoices::select(DB::raw('count(*) as number'))->where('enterprise_id','=',$Ese['id'])->get('number')->first();
+                if ($sumInvoices['number']>=500) {
+                    return response()->json([
+                        'data' =>'',
+                        'message'=>'invoices number exceeded'
+                    ]);
+                }else{
+                    return $this->saveOfflineInvoice($request);
+                }
             }
         }else{
             return response()->json([
@@ -220,6 +221,33 @@ class InvoicesController extends Controller
         }
     }
 
+    /**
+     * SaveOffline Invoice
+     */
+    public function saveOfflineInvoice(StoreInvoicesRequest $request){
+ 
+        // if(empty($request['invoice']['customer_id'])){
+        //     // if (isset($request['invoice']['customer_uuid']) && !empty($request['invoice']['customer_uuid'])){
+        //     //     # code...
+        //     // }
+        //     $customer=CustomerController::where('uuid','=',$request['invoice']['customer_uuid'])->get()->first();
+        //     $request['invoice']['customer_id']=$customer->id;
+        // }
+        $invoice=Invoices::create($request['invoice']);
+        
+        //enregistrement des details
+        if(isset($request->details)){
+            foreach ($request->details as $detail) {
+                $detail['invoice_id']=$invoice['id'];
+                $detail['total']=$detail['quantity']*$detail['price'];
+                InvoiceDetails::create($detail);
+            }
+        }
+        return response()->json([
+            'data' =>$this->show($invoice),
+            'message'=>'can make invoice'
+        ]);
+    }
     /**
      * Display the specified resource.
      *

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\colors;
 use App\Http\Requests\StorecolorsRequest;
 use App\Http\Requests\UpdatecolorsRequest;
+use Illuminate\Http\Request;
 
 class ColorsController extends Controller
 {
@@ -47,7 +48,7 @@ class ColorsController extends Controller
      */
     public function show(colors $colors)
     {
-        return colors::find($colors);
+        return colors::find($colors->id);
     }
 
     /**
@@ -73,6 +74,13 @@ class ColorsController extends Controller
         return $this->show(colors::find($colors)->update($request->all()));
     }
 
+    public function update2(Request $request,$id)
+    {
+        $color=colors::find($id);
+        $color->update($request->all());
+
+        return $this->show($color);
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -82,5 +90,11 @@ class ColorsController extends Controller
     public function destroy(colors $colors)
     {
         return colors::destroy($colors);
+    }
+
+    public function destroy2($id)
+    {
+        $get=colors::find($id);
+        return $get->delete();
     }
 }

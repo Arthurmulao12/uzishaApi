@@ -19,11 +19,31 @@ class DebtsController extends Controller
      */
     public function index($enterprise_id)
     {
-        $list=collect(Debts::join('invoices','debts.invoice_id','=','invoices.id')->where('enterprise_id','=',$enterprise_id)->where('debts.status','=','0')->get(['debts.*']));
+        $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')->where('I.type_facture','=','credit')->where('I.enterprise_id','=',$enterprise_id)->where('debts.status','=','0')->get(['debts.*']));
         $listdata=$list->map(function ($item,$key){
             return $this->show($item);
         });
         return $listdata;
+    }
+
+    /**
+     * Compte courant Customer
+     */
+    public function compteCourant(Request $request){
+        $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')->where('debts.customer_id','=',$request['customer_id'])->where('debts.status','=','0')->get(['debts.*']));
+        $listdata=$list->map(function ($item){
+            return $this->show($item);
+        });
+        return $listdata;
+    }
+
+    /**
+     * get payments for a debts
+     */
+    public function getPayments(Request $request){
+        return DebtPayments::leftjoin('users as U', 'debt_payments.done_by_id','=','U.id')
+        ->where('debt_payments.debt_id', '=', $request['debt_id'])
+        ->get(['U.user_name','debt_payments.*']);
     }
 
     /**
@@ -54,7 +74,10 @@ class DebtsController extends Controller
             $request['sold']=$request['debt']['sold'];
             $request['uuid']=$request['debt']['uuid'];
             $request['sync_status']=1;
+            $request['status']='0';
             Debts::create($request->all());
+        }else{
+           return Debts::create($request->all());   
         }
 
     }

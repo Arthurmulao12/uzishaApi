@@ -13,7 +13,6 @@ class colors extends Model
     'code',
     'showonquickbar',
     'user_id',
-   'user_id',
     'enterprise_id'
    ];
 }

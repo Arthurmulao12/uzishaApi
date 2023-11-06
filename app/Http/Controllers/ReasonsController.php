@@ -6,6 +6,7 @@ use App\Models\reasons;
 use App\Http\Requests\StorereasonsRequest;
 use App\Http\Requests\UpdatereasonsRequest;
 use App\Models\spots;
+use Illuminate\Http\Request;
 
 class ReasonsController extends Controller
 {
@@ -16,7 +17,7 @@ class ReasonsController extends Controller
      */
     public function index($enterpriseId)
     {
-        return reasons::where('enterprise_id','=',$enterpriseId);
+        return reasons::where('enterprise_id','=',$enterpriseId)->get();
     }
 
     /**
@@ -48,7 +49,7 @@ class ReasonsController extends Controller
      */
     public function show(reasons $reasons)
     {
-        return reasons::find($reasons);
+        return reasons::find($reasons->id);
     }
 
     /**
@@ -75,6 +76,17 @@ class ReasonsController extends Controller
     }
 
     /**
+     * update 2
+     */
+    public function update2(Request $request,$id)
+    {
+        $color=reasons::find($id);
+        $color->update($request->all());
+
+        return $this->show($color);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\reasons  $reasons
@@ -83,5 +95,14 @@ class ReasonsController extends Controller
     public function destroy(reasons $reasons)
     {
         return $reasons->delete();
+    }
+
+     /**
+     * Delete
+     */
+    public function destroy2($id)
+    {
+        $get=reasons::find($id);
+        return $get->delete();
     }
 }

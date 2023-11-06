@@ -18,6 +18,7 @@ use App\Http\Controllers\PointsController;
 use App\Http\Controllers\StylesController;
 use App\Http\Controllers\TablesController;
 use App\Http\Controllers\DefectsController;
+use App\Http\Controllers\ReasonsController;
 use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\CautionsController;
 use App\Http\Controllers\CommentsController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\RequestsController;
 use App\Http\Controllers\ServantsController;
 use App\Http\Controllers\MaterialsController;
 use App\Http\Controllers\SafeguardController;
+use OpenApi\Annotations\AdditionalProperties;
 use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\EnterprisesController;
 use App\Http\Controllers\PointOfSaleController;
@@ -47,6 +49,7 @@ use App\Http\Controllers\TransfertstockController;
 use App\Http\Controllers\MoneyConversionController;
 use App\Http\Controllers\SubDepartementsController;
 use App\Http\Controllers\AffectationUsersController;
+use App\Http\Controllers\PressingServicesController;
 use App\Http\Controllers\PricesCategoriesController;
 use App\Http\Controllers\UsersPointOfSaleController;
 use App\Http\Controllers\DepositControllerController;
@@ -57,6 +60,7 @@ use App\Http\Controllers\ProviderControllerController;
 use App\Http\Controllers\RequestapprovmentsController;
 use App\Http\Controllers\ServicesControllerController;
 use App\Http\Controllers\DecisionDecisionteamController;
+use App\Http\Controllers\ServicesadditionalfeesController;
 use App\Http\Controllers\StockHistoryControllerController;
 use App\Http\Controllers\UnitOfMeasureControllerController;
 use App\Http\Controllers\ValidatedbydecisionteamController;
@@ -65,8 +69,6 @@ use App\Http\Controllers\DecisionChiefdepartmentsController;
 use App\Http\Controllers\NbrdecisionteamValidationController;
 use App\Http\Controllers\CategoriesCustomerControllerController;
 use App\Http\Controllers\CategoriesServicesControllerController;
-use App\Http\Controllers\ServicesadditionalfeesController;
-use OpenApi\Annotations\AdditionalProperties;
 
 /*
 |--------------------------------------------------------------------------
@@ -364,7 +366,9 @@ Route::apiResource('invoicedetails',InvoiceDetailsController::class);
 
 Route::apiResource('debts',DebtsController::class);
 Route::get('/debts/enterprise/{enterprise_id}',[DebtsController::class,'index']);
+Route::post('/debts/customer',[DebtsController::class,'compteCourant']);
 Route::post('/debts/payment',[DebtsController::class,'payment_debt']);
+Route::post('/debts/debt/payments',[DebtsController::class,'getPayments']);
 
 Route::apiResource('payments',DebtPaymentsController::class);
 //Financial mouvements
@@ -391,6 +395,10 @@ Route::get('/otherentries/doneby/{id}',[OtherEntriesController::class,'doneby'])
  * Safeguards
  */
 Route::apiResource('safeguards',SafeguardController::class);
+
+/**
+ * Roles
+ */
 Route::resource('/role',RolesController::class);
 Route::delete('/role/delete/{id}',[RolesController::class,'destroy2']);
 Route::post('/role/owner',[RolesController::class,'ruleForOwner']);
@@ -401,21 +409,55 @@ Route::get('/role/permissions/{id}',[RolesController::class,'gerpermissions']);
  * Pressings
  */
 
- //Colors
-Route::apiResource('colors',ColorsController::class);
-Route::get('/colors/enterprise/{enterpriseid}',[ColorsController::class,'index']);
+//Services
+Route::post('/pressing/services',[PressingServicesController::class,'services_list']);
+Route::post('/pressing/services/new',[PressingServicesController::class,'store']);
+Route::put('/pressing/services/update/{id}',[ServicesControllerController::class,'update2']);
+Route::patch('/pressing/services/update/{id}',[ServicesControllerController::class,'update2']);
+Route::delete('/pressing/services/delete/{id}',[ServicesControllerController::class,'destroy2']);
+
+//Colors
+Route::apiResource('pressing/colors',ColorsController::class);
+Route::get('/pressing/colors/enterprise/{enterpriseid}',[ColorsController::class,'index']);
+Route::put('/pressing/colors/update/{id}',[ColorsController::class,'update2']);
+Route::patch('/pressing/colors/update/{id}',[ColorsController::class,'update2']);
+Route::delete('/pressing/colors/delete/{id}',[ColorsController::class,'destroy2']);
+
 //Defects
-Route::apiResource('defects',DefectsController::class);
-Route::get('/defects/enterprise/{enterpriseid}',[DefectsController::class,'index']);
+Route::apiResource('/pressing/defects',DefectsController::class);
+Route::get('/pressing/defects/enterprise/{enterpriseid}',[DefectsController::class,'index']);
+Route::put('/pressing/defects/update/{id}',[DefectsController::class,'update2']);
+Route::patch('/pressing/defects/update/{id}',[DefectsController::class,'update2']);
+Route::delete('/pressing/defects/delete/{id}',[DefectsController::class,'destroy2']);
+
 //Spots
-Route::apiResource('spots',SpotsController::class);
-Route::get('/spots/enterprise/{enterpriseid}',[SpotsController::class,'index']);
+Route::apiResource('/pressing/spots',SpotsController::class);
+Route::get('/pressing/spots/enterprise/{enterpriseid}',[SpotsController::class,'index']);
+Route::put('/pressing/spots/update/{id}',[SpotsController::class,'update2']);
+Route::patch('/pressing/spots/update/{id}',[SpotsController::class,'update2']);
+Route::delete('/pressing/spots/delete/{id}',[SpotsController::class,'destroy2']);
+
 //Styles
-Route::apiResource('styles',StylesController::class);
-Route::get('/styles/enterprise/{enterpriseid}',[StylesController::class,'index']);
+Route::apiResource('/pressing/styles',StylesController::class);
+Route::get('/pressing/styles/enterprise/{enterpriseid}',[StylesController::class,'index']);
+Route::put('/pressing/styles/update/{id}',[StylesController::class,'update2']);
+Route::patch('/pressing/styles/update/{id}',[StylesController::class,'update2']);
+Route::delete('/pressing/styles/delete/{id}',[StylesController::class,'destroy2']);
+
 //materials
-Route::apiResource('materials',MaterialsController::class);
-Route::get('/materials/enterprise/{enterpriseid}',[MaterialsController::class,'index']);
+Route::apiResource('pressing/materials',MaterialsController::class);
+Route::get('/pressing/materials/enterprise/{enterpriseid}',[MaterialsController::class,'index']);
+Route::put('/pressing/materials/update/{id}',[MaterialsController::class,'update2']);
+Route::patch('/pressing/materials/update/{id}',[MaterialsController::class,'update2']);
+Route::delete('/pressing/materials/delete/{id}',[MaterialsController::class,'destroy2']);
+
+//materials
+Route::apiResource('pressing/reasons',ReasonsController::class);
+Route::get('/pressing/reasons/enterprise/{enterpriseid}',[ReasonsController::class,'index']);
+Route::put('/pressing/reasons/update/{id}',[ReasonsController::class,'update2']);
+Route::patch('/pressing/reasons/update/{id}',[ReasonsController::class,'update2']);
+Route::delete('/pressing/reasons/delete/{id}',[ReasonsController::class,'destroy2']);
+
 //additional services fees
 Route::apiResource('additionalfees',ServicesadditionalfeesController::class);
-Route::get('/additionalfees/enterprise/{enterpriseid}',[ServicesadditionalfeesController::class,'index']);
+Route::get('/pressing/additionalfees/enterprise/{enterpriseid}',[ServicesadditionalfeesController::class,'index']);

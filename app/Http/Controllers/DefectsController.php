@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\defects;
 use App\Http\Requests\StoredefectsRequest;
 use App\Http\Requests\UpdatedefectsRequest;
+use Illuminate\Http\Request;
 
 class DefectsController extends Controller
 {
@@ -47,7 +48,7 @@ class DefectsController extends Controller
      */
     public function show(defects $defects)
     {
-        return defects::find($defects);
+        return defects::find($defects->id);
     }
 
     /**
@@ -83,4 +84,25 @@ class DefectsController extends Controller
     {
         return $defects->delete();
     }
+
+    /**
+     * Update 
+     */
+    
+     public function update2(Request $request,$id)
+     {
+         $defect=defects::find($id);
+         $defect->update($request->all());
+
+         return $this->show($defect);
+     }
+
+     /**
+      * delete
+      */
+      public function destroy2($id)
+      {
+          $get=defects::find($id);
+          return $get->delete();
+      }
 }

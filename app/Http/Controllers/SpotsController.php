@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\spots;
 use App\Http\Requests\StorespotsRequest;
 use App\Http\Requests\UpdatespotsRequest;
+use Illuminate\Http\Request;
 
 class SpotsController extends Controller
 {
@@ -47,7 +48,7 @@ class SpotsController extends Controller
      */
     public function show(spots $spots)
     {
-        return spots::find($spots);
+        return spots::find($spots->id);
     }
 
     /**
@@ -74,6 +75,17 @@ class SpotsController extends Controller
     }
 
     /**
+     * update 2
+     */
+    public function update2(Request $request,$id)
+    {
+        $color=spots::find($id);
+        $color->update($request->all());
+
+        return $this->show($color);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\spots  $spots
@@ -82,5 +94,14 @@ class SpotsController extends Controller
     public function destroy(spots $spots)
     {
         return $spots->delete();
+    }
+
+    /**
+     * delete
+     */
+    public function destroy2($id)
+    {
+        $get=spots::find($id);
+        return $get->delete();
     }
 }

@@ -12,6 +12,7 @@ use App\Models\FenceTicketing;
 use App\Models\Invoices;
 use App\Models\OtherEntries;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use stdClass;
 
 class FencesController extends Controller
@@ -122,6 +123,8 @@ class FencesController extends Controller
                 $message="already_fenced";
                 return $message;
             }else{
+                $newdate=Carbon::create($request->date_concerned);
+                $request['date_concerned']=$newdate;
                 $newfence=Fences::create($request->all());
                 if($request->ticketings){
                     foreach($request->ticketings as $ticketing){
