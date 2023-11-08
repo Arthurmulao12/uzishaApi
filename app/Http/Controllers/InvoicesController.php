@@ -320,6 +320,19 @@ class InvoicesController extends Controller
             return $this->show($item);
         });
         return $listdata;
+    }  
+    
+    public function forACustomerFiltered(Request $request){
+        if (empty($request['from']) && empty($request['to'])) {
+            $request['from']=date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        } 
+
+        $list=collect(Invoices::whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('customer_id','=',$request['customer_id'])->get());
+        $listdata=$list->map(function ($item,$key){
+            return $this->show($item);
+        });
+        return ["invoices"=>$listdata,"from"=> $request['from'],"to"=> $request['to']];
     }
 
     /**

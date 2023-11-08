@@ -336,6 +336,7 @@ Route::get('/servants/sales/{id}',[ServantsController::class,'getsales']);
 Route::apiResource('cautions',CautionsController::class);
 Route::get('/cautions/enterprise/{id}',[CautionsController::class,'index']);
 Route::get('/cautions/customer/{id}',[CautionsController::class,'foracustomer']);
+Route::post('/cautions/customer/filtered',[CautionsController::class,'FilteredCautionsForACustomer']);
 
 Route::apiResource('bonus',BonusController::class);
 Route::get('/bonus/enterprise/{id}',[BonusController::class,'index']);
@@ -356,6 +357,7 @@ Route::apiResource('fenceticketing',FenceTicketingController::class);
 Route::apiResource('invoices',InvoicesController::class);
 Route::get('/invoices/enterprise/{id}',[InvoicesController::class,'index']);
 Route::get('/invoices/customer/{id}',[InvoicesController::class,'foracustomer']);
+Route::post('/invoices/filteredcustomer',[InvoicesController::class,'forACustomerFiltered']);
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
 Route::post('/invoices/users/',[InvoicesController::class,'foraspecificuser']);
 Route::patch('/invoices/cancel',[InvoicesController::class,'cancelling']);
@@ -367,6 +369,7 @@ Route::apiResource('invoicedetails',InvoiceDetailsController::class);
 Route::apiResource('debts',DebtsController::class);
 Route::get('/debts/enterprise/{enterprise_id}',[DebtsController::class,'index']);
 Route::post('/debts/customer',[DebtsController::class,'compteCourant']);
+Route::post('/debts/customer/filteredcomptecourantcustomer',[DebtsController::class,'FilteredcompteCourant']);
 Route::post('/debts/payment',[DebtsController::class,'payment_debt']);
 Route::post('/debts/debt/payments',[DebtsController::class,'getPayments']);
 
@@ -404,6 +407,7 @@ Route::delete('/role/delete/{id}',[RolesController::class,'destroy2']);
 Route::post('/role/owner',[RolesController::class,'ruleForOwner']);
 Route::get('/role/enterprise/{id}',[RolesController::class,'index']);
 Route::get('/role/permissions/{id}',[RolesController::class,'gerpermissions']);
+Route::get('/role/specificroleuser/{id}',[RolesController::class,'specificRoleUser']);
 
 /**
  * Pressings

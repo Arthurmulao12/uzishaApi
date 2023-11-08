@@ -21,6 +21,13 @@ class RolesController extends Controller
     }
 
     /**
+     * get specific role for a user
+     */
+    public function specificRoleUser($idRole){
+        return Roles::where('id', $idRole)->get(['id','title','description','user_id','enterprise_id'])->first();
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -33,6 +40,7 @@ class RolesController extends Controller
     public function gerpermissions($idRole){
         return Roles::where('id', $idRole)->get('permissions')->first();
     }
+
     public function ruleForOwner(Request $request){
         $userCtrl= new UsersController();
         $request['enterprise_id']=$this->getEse($request['user_id']);
@@ -59,7 +67,7 @@ class RolesController extends Controller
      */
     public function show(Roles $Roles)
     {
-        return Roles::find($Roles);
+        return Roles::find($Roles->id);
     }
 
     /**
@@ -82,7 +90,8 @@ class RolesController extends Controller
     public function update(Request $request, $id)
     {
         $element = Roles::find($id);
-        return $element->update($request->all());
+        $element->update($request->all());
+        return Roles::find($id);
     }
 
     /**

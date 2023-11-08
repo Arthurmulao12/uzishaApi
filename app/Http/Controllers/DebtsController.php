@@ -35,6 +35,23 @@ class DebtsController extends Controller
             return $this->show($item);
         });
         return $listdata;
+    }  
+    
+    /**
+     * Compte courant Customer
+     */
+    public function FilteredcompteCourant(Request $request){
+
+        if (empty($request['from']) && empty($request['to'])) {
+            $request['from']=date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        } 
+
+        $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('debts.customer_id','=',$request['customer_id'])->where('debts.status','=','0')->get(['debts.*']));
+        $listdata=$list->map(function ($item){
+            return $this->show($item);
+        });
+        return ["debts"=>$listdata,"from"=> $request['from'],"to"=> $request['to']];
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Models\OtherEntries;
 use Illuminate\Http\Request;
 use App\Models\usersenterprise;
 use App\Models\affectation_users;
+use App\Models\Cautions;
 use App\Models\DebtPayments;
 use App\Models\DepositController;
 use App\Models\DepositsUsers;
@@ -163,6 +164,20 @@ class UsersController extends Controller
                         } 
                     }
                 }
+                //cautions
+                $cautions=Cautions::whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('enterprise_id','=',$ese['id'])->get();
+                foreach ($cautions as $caution) {
+                    if ($defautmoney['id']==$caution['money_id']) {
+                        $total_entries=$total_entries+$caution['amount'];
+                    } else {
+                        $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$caution['money_id'])->first();
+                        if(!$rate){
+                            $total_entries=($total_entries+$caution['amount'])*0;
+                        }else{
+                            $total_entries=($total_entries+$caution['amount'])* $rate['rate'];
+                        } 
+                    }
+                }
                 //accounts
                 $accounts_list=Accounts::where('enterprise_id','=',$ese['id'])->get();
                 foreach ($accounts_list as $account) {
@@ -308,6 +323,20 @@ class UsersController extends Controller
                         } 
                     }
                 }
+                 //cautions
+                 $cautions=Cautions::whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('enterprise_id','=',$ese['id'])->where('user_id','=',$userId)->get();
+                 foreach ($cautions as $caution) {
+                     if ($defautmoney['id']==$caution['money_id']) {
+                         $total_entries=$total_entries+$caution['amount'];
+                     } else {
+                         $rate=money_conversion::where('money_id1','=',$defautmoney['id'])->where('money_id2','=',$caution['money_id'])->first();
+                         if(!$rate){
+                             $total_entries=($total_entries+$caution['amount'])*0;
+                         }else{
+                             $total_entries=($total_entries+$caution['amount'])* $rate['rate'];
+                         } 
+                     }
+                 }
                  //accounts
                  $accounts_list=Accounts::where('enterprise_id','=',$ese['id'])->get();
                  foreach ($accounts_list as $account) {
