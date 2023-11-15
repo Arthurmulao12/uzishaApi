@@ -102,7 +102,12 @@ class DefectsController extends Controller
       */
       public function destroy2($id)
       {
-          $get=defects::find($id);
-          return $get->delete();
+        $message="failed";
+        $get=defects::find($id);
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
       }
 }

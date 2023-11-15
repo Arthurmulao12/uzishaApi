@@ -13,6 +13,12 @@ use App\Http\Requests\UpdateInvoicesRequest;
 use App\Models\CustomerController;
 use App\Models\DepositServices;
 use App\Models\DepositsUsers;
+use App\Models\invoicesdetailscolors;
+use App\Models\invoicesdetailsdefects;
+use App\Models\invoicesdetailsmaterials;
+use App\Models\invoicesdetailsreasons;
+use App\Models\invoicesdetailsSpots;
+use App\Models\invoicesdetailsStyles;
 use Illuminate\Http\Request;
 
 class InvoicesController extends Controller
@@ -50,7 +56,56 @@ class InvoicesController extends Controller
                 'message'=>'failed'
             ]);
         }
-    }   
+    }
+    
+    /**
+     * report by user for selling cash and credit
+     */
+    public function reportUserSelling(Request $request){
+        $list_data=[];
+        $user=$this->getinfosuser($request['user_id']);
+        $enterprise=$this->getEse($user['id']);
+        if(empty($request->from) && empty($request->to)){
+            $request['from']= date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        }
+
+        if ($user['user_type']=='super_admin') {
+            $users=Invoices::where('enterprise_id','=',$enterprise['id'])
+            ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->select('edited_by_id')
+            ->groupBy('edited_by_id')
+            ->get();
+            
+            foreach ($users as $user) {
+                $cash=Invoices::select(DB::raw('sum(total) as totalCash'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','cash')->get('totalCash')->first();
+                $credits=Invoices::select(DB::raw('sum(total) as totalCredits'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','credit')->get('totalCredits')->first();
+                $user['user']=$this->getinfosuser($user['edited_by_id']);
+                $user['cash']=$cash['totalCash'];
+                $user['credits']=$credits['totalCredits'];
+
+                //grouped details invoices
+                $invoices=Invoices::where('edited_by_id','=',$user['edited_by_id'])
+                ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                ->get();
+                $details_gotten=[];
+                foreach ($invoices as $invoice) {
+                    $details= DB::table('invoice_details')
+                    ->leftjoin('services_controllers as S','invoice_details.service_id','=','S.id')
+                    ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                    ->where('invoice_details.invoice_id','=',$invoice['id'])
+                    ->select('invoice_details.service_id','S.name','UOM.symbol','invoice_details.quantity','invoice_details.total')
+                    ->get();
+                    $details_gotten=collect($details_gotten)->mergeRecursive($details);
+                }
+                $grouped=$details_gotten->groupBy('name');
+                $user['details']=$grouped->all();
+                // $user['details']=$details_gotten->all();
+                array_push($list_data,$user); 
+            }
+        } 
+        return $list_data;
+    }
      /**
       * for a specific users
       */
@@ -378,5 +433,48 @@ class InvoicesController extends Controller
             }
             
       return  Invoices::destroy($invoices);
+    }
+
+    //Pressings
+
+    /**
+     * get orders
+     */
+    public function pressingOrders(Request $request){
+        $ese=$this->getEse($request['user_id']);
+        $list=collect(Invoices::where('type_facture','=','press-order')->where('status','=','0')->where('enterprise_id','=',$ese['id'])->get());
+        $listdata=$list->map(function ($item){
+            return $this->ShowInvoicePressing($item);
+        });
+        return $listdata;
+    }
+
+    /**
+     * show pressing method
+     */
+    public function ShowInvoicePressing(Invoices $invoices){
+        $details=[];
+        $details_gotten=[];
+        $debt=[];
+        $payments=[];
+
+        $details=InvoiceDetails::leftjoin('moneys as M','invoice_details.money_id','=','M.id')
+        ->leftjoin('services_controllers','invoice_details.service_id','=','services_controllers.id')
+        ->leftjoin('unit_of_measure_controllers as UOM','services_controllers.uom_id','=','UOM.id')
+        ->where('invoice_details.invoice_id','=',$invoices->id)
+        ->get(['UOM.name as uom_name','UOM.symbol as uom_symbol','M.money_name','M.abreviation','services_controllers.name as service_name','invoice_details.*']);
+        
+        foreach ($details as $value) {
+            //getting others informations for each detail
+            $value['colors']=invoicesdetailscolors::join('colors','invoicesdetailscolors.color_id','=','colors.id')->where('invoicesdetailscolors.detail_id','=',$value['id'])->get('colors.*');
+            $value['defects']=invoicesdetailsdefects::join('defects','invoicesdetailsdefects.defect_id','=','defects.id')->where('invoicesdetailsdefects.detail_id','=',$value['id'])->get('defects.*');
+            $value['spots']=invoicesdetailsSpots::join('spots','invoicesdetails_spots.spot_id','=','spots.id')->where('invoicesdetails_spots.detail_id','=',$value['id'])->get('spots.*');
+            $value['materials']=invoicesdetailsmaterials::join('materials','invoicesdetailsmaterials.material_id','=','materials.id')->where('invoicesdetailsmaterials.detail_id','=',$value['id'])->get('materials.*');
+            $value['reasons']=invoicesdetailsreasons::join('reasons','invoicesdetailsreasons.reason_id','=','reasons.id')->where('invoicesdetailsreasons.detail_id','=',$value['id'])->get('reasons.*');
+            $value['styles']=invoicesdetailsStyles::join('styles','invoicesdetails_styles.style_id','=','styles.id')->where('invoicesdetails_styles.detail_id','=',$value['id'])->get('styles.*');
+        }
+        
+        $invoices['details']=$details;
+        return $invoices;
     }
 }

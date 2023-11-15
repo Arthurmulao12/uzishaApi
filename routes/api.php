@@ -247,6 +247,7 @@ Route::get('/stockhistory/enterprise/{id}',[StockHistoryControllerController::cl
 Route::get('/stockhistory/serviceid/{serviceid}',[StockHistoryControllerController::class,'getbyservice']);
 Route::post('/stockhistory/byuser',[StockHistoryControllerController::class,'getbyuser']);
 Route::post('/stockhistory/byuser/grouped',[StockHistoryControllerController::class,'getbyusergrouped']);
+Route::post('/stockhistory/byuser/newreportstockhistory',[StockHistoryControllerController::class,'newReportStockHistory']);
 Route::post('/stockhistory/expiration',[StockHistoryControllerController::class,'reportexpiration']);
 Route::post('/stockhistory/fordeposit',[StockHistoryControllerController::class,'fordeposit']);
 Route::post('/stockhistory/multipleservices',[StockHistoryControllerController::class,'multipleservices']);
@@ -358,6 +359,7 @@ Route::apiResource('invoices',InvoicesController::class);
 Route::get('/invoices/enterprise/{id}',[InvoicesController::class,'index']);
 Route::get('/invoices/customer/{id}',[InvoicesController::class,'foracustomer']);
 Route::post('/invoices/filteredcustomer',[InvoicesController::class,'forACustomerFiltered']);
+Route::post('/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
 Route::post('/invoices/users/',[InvoicesController::class,'foraspecificuser']);
 Route::patch('/invoices/cancel',[InvoicesController::class,'cancelling']);
@@ -455,7 +457,7 @@ Route::put('/pressing/materials/update/{id}',[MaterialsController::class,'update
 Route::patch('/pressing/materials/update/{id}',[MaterialsController::class,'update2']);
 Route::delete('/pressing/materials/delete/{id}',[MaterialsController::class,'destroy2']);
 
-//materials
+//reasons
 Route::apiResource('pressing/reasons',ReasonsController::class);
 Route::get('/pressing/reasons/enterprise/{enterpriseid}',[ReasonsController::class,'index']);
 Route::put('/pressing/reasons/update/{id}',[ReasonsController::class,'update2']);
@@ -465,3 +467,13 @@ Route::delete('/pressing/reasons/delete/{id}',[ReasonsController::class,'destroy
 //additional services fees
 Route::apiResource('additionalfees',ServicesadditionalfeesController::class);
 Route::get('/pressing/additionalfees/enterprise/{enterpriseid}',[ServicesadditionalfeesController::class,'index']);
+
+//Customers
+Route::get('/pressing/customers/enterprise/{id}',[CustomerControllerController::class,'index']);
+Route::post('/pressing/customers/new',[CustomerControllerController::class,'store']);
+Route::put('/pressing/customers/update/{id}',[CustomerControllerController::class,'update2']);
+Route::patch('/pressing/customers/update/{id}',[CustomerControllerController::class,'update2']);
+Route::delete('/pressing/customers/delete/{id}',[CustomerControllerController::class,'delete']);
+
+//Orders
+Route::get('/pressing/orders/enterprise/{userid}',[InvoicesController::class,'pressingOrders']);

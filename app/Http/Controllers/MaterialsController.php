@@ -82,7 +82,7 @@ class MaterialsController extends Controller
         $color=materials::find($id);
         $color->update($request->all());
 
-        return $this->show($color);
+        return $this->show(materials::find($id));
     }
     /**
      * Remove the specified resource from storage.
@@ -100,7 +100,12 @@ class MaterialsController extends Controller
      */
     public function destroy2($id)
     {
+        $message="failed";
         $get=materials::find($id);
-        return $get->delete();
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 }

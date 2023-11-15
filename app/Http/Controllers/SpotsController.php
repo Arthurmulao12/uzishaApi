@@ -82,7 +82,7 @@ class SpotsController extends Controller
         $color=spots::find($id);
         $color->update($request->all());
 
-        return $this->show($color);
+        return $this->show(spots::find($id));
     }
 
     /**
@@ -101,7 +101,12 @@ class SpotsController extends Controller
      */
     public function destroy2($id)
     {
+        $message="failed";
         $get=spots::find($id);
-        return $get->delete();
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 }

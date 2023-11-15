@@ -48,7 +48,7 @@ class StylesController extends Controller
      */
     public function show(styles $styles)
     {
-        return styles::find($styles);
+        return styles::find($styles->id);
     }
 
     /**
@@ -79,10 +79,10 @@ class StylesController extends Controller
      */
     public function update2(Request $request,$id)
     {
-        $color=styles::find($id);
-        $color->update($request->all());
+        $style=styles::find($id);
+        $style->update($request->all());
 
-        return $this->show($color);
+        return $this->show(styles::find($id));
     }
     /**
      * Remove the specified resource from storage.
@@ -100,7 +100,12 @@ class StylesController extends Controller
      */
     public function destroy2($id)
     {
+        $message="failed";
         $get=styles::find($id);
-        return $get->delete();
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 }

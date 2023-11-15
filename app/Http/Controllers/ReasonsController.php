@@ -83,7 +83,7 @@ class ReasonsController extends Controller
         $color=reasons::find($id);
         $color->update($request->all());
 
-        return $this->show($color);
+        return $this->show(reasons::find($id));
     }
 
     /**
@@ -102,7 +102,12 @@ class ReasonsController extends Controller
      */
     public function destroy2($id)
     {
+        $message="failed";
         $get=reasons::find($id);
-        return $get->delete();
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 }

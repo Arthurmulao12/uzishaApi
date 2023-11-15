@@ -115,8 +115,14 @@ class CustomerControllerController extends Controller
     }
     
     public function delete($customer){
-        $custom=CustomerController::find($customer);
-        return $custom->delete();
+      
+        $message="failed";
+        $get=CustomerController::find($customer);
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 
     public function getbyuuid(Request $request){

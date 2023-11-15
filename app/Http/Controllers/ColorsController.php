@@ -79,7 +79,7 @@ class ColorsController extends Controller
         $color=colors::find($id);
         $color->update($request->all());
 
-        return $this->show($color);
+        return $this->show(colors::find($id));
     }
     /**
      * Remove the specified resource from storage.
@@ -94,7 +94,12 @@ class ColorsController extends Controller
 
     public function destroy2($id)
     {
+        $message="failed";
         $get=colors::find($id);
-        return $get->delete();
+        if ($get->delete()) {
+            $message="deleted";
+        }
+
+        return ['message'=>$message];
     }
 }
