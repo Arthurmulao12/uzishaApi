@@ -20,6 +20,7 @@ use App\Models\CategoriesCustomerController;
 use App\Models\CategoriesServicesController;
 use App\Http\Requests\StoreEnterprisesRequest;
 use App\Http\Requests\UpdateEnterprisesRequest;
+use Illuminate\Http\Request;
 
 class EnterprisesController extends Controller
 {
@@ -294,6 +295,28 @@ class EnterprisesController extends Controller
     public function update(UpdateEnterprisesRequest $request, Enterprises $enterprises)
     {
        return $enterprises->update($request->all());
+    }
+    
+   /**
+    * update Ese  
+    */
+     public function update2(Request $request, $enterprises)
+    {
+        $message="not found";
+        $find=Enterprises::find($enterprises);
+        if ($find) {
+           $updated=$find->update($request->all());
+           if ($updated) {
+            $message="updated";
+           }else{
+            $message="fail";
+           }
+        }
+
+      return  response()->json([
+            'enterprise'=>Enterprises::find($enterprises),
+            'message'=>$message
+        ]);
     }
 
     /**

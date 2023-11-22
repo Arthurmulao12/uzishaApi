@@ -209,6 +209,7 @@ Route::patch('/unitofmeasures/update/{id}',[UnitOfMeasureControllerController::c
 Route::apiResource('owners',OwnersController::class);
 //Enterprises (Entreprises)
 Route::apiResource('enterprises',EnterprisesController::class);
+Route::put('/enterprises/update/{id}',[EnterprisesController::class,'update2']);
 Route::get('/enterprises/getinfos/{id}',[EnterprisesController::class,'getone']);
 
 //Point of sale (Points des ventes)
@@ -412,6 +413,11 @@ Route::get('/role/permissions/{id}',[RolesController::class,'gerpermissions']);
 Route::get('/role/specificroleuser/{id}',[RolesController::class,'specificRoleUser']);
 
 /**
+ * reports for uzisha stock
+ */
+Route::post('/reports/cashbook',[InvoicesController::class,'cashbook']);
+
+/**
  * Pressings
  */
 
@@ -477,3 +483,4 @@ Route::delete('/pressing/customers/delete/{id}',[CustomerControllerController::c
 
 //Orders
 Route::get('/pressing/orders/enterprise/{userid}',[InvoicesController::class,'pressingOrders']);
+Route::post('/pressing/orders/new',[InvoicesController::class,'storeorder']);

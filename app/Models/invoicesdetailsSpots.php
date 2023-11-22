@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class invoicesdetailsSpots extends Model
 {
     use HasFactory;
-    protected $fillabel=[
+    protected $fillable=[
         'detail_id',
         'spot_id',
         'quantity',
