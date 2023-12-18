@@ -15,6 +15,7 @@ use App\Http\Controllers\FencesController;
 use App\Http\Controllers\MoneysController;
 use App\Http\Controllers\OwnersController;
 use App\Http\Controllers\PointsController;
+use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StylesController;
 use App\Http\Controllers\TablesController;
 use App\Http\Controllers\DefectsController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\RequestServedController;
 use App\Http\Controllers\DetailsRequestController;
 use App\Http\Controllers\FenceTicketingController;
 use App\Http\Controllers\InvoiceDetailsController;
+use App\Http\Controllers\InvoicesStatusController;
 use App\Http\Controllers\RequestHistoryController;
 use App\Http\Controllers\SelfReferencesController;
 use App\Http\Controllers\TransfertstockController;
@@ -56,13 +58,16 @@ use App\Http\Controllers\DepositControllerController;
 use App\Http\Controllers\RequestReferencesController;
 use App\Http\Controllers\UsersTicketOfficeController;
 use App\Http\Controllers\CustomerControllerController;
+use App\Http\Controllers\ExpendituresLimitsController;
 use App\Http\Controllers\ProviderControllerController;
 use App\Http\Controllers\RequestapprovmentsController;
 use App\Http\Controllers\ServicesControllerController;
 use App\Http\Controllers\DecisionDecisionteamController;
+use App\Http\Controllers\DetailsInvoicesStatusController;
 use App\Http\Controllers\ServicesadditionalfeesController;
 use App\Http\Controllers\StockHistoryControllerController;
 use App\Http\Controllers\UnitOfMeasureControllerController;
+use App\Http\Controllers\UsersExpendituresLimitsController;
 use App\Http\Controllers\ValidatedbydecisionteamController;
 use App\Http\Controllers\AttemptactivationaccountController;
 use App\Http\Controllers\DecisionChiefdepartmentsController;
@@ -154,7 +159,7 @@ Route::resource('/nbrdecisionteam_validation', NbrdecisionteamValidationControll
 Route::resource('/request_files', RequestFilesController::class);
 Route::post('request_files/upload',[RequestFilesController::class,'getsfiles']);
 Route::get('/request_files/single/{id}',[RequestFilesController::class,'getfilesbyrequest']);
-Route::get('/requests/decisionteamall',[RequestController::class,'validatedbydecisionteamall']);
+// Route::get('/requests/decisionteamall',[RequestController::class,'validatedbydecisionteamall']);
 
 Route::resource('/request_references', RequestReferencesController::class);
 Route::get('/request_references/single/{id}',[RequestReferencesController::class,'getreferencesbyrequest']);
@@ -413,6 +418,21 @@ Route::get('/role/permissions/{id}',[RolesController::class,'gerpermissions']);
 Route::get('/role/specificroleuser/{id}',[RolesController::class,'specificRoleUser']);
 
 /**
+ * Expenditures limits
+ */
+Route::resource('/limitsexpenditures',ExpendituresLimitsController::class);
+Route::get('/limitsexpenditures/enterprise/{id}',[ExpendituresLimitsController::class,'index']);
+Route::put('/limitsexpenditures/update/{id}',[ExpendituresLimitsController::class,'update2']);
+Route::delete('/limitsexpenditures/delete/{id}',[ExpendituresLimitsController::class,'destroy2']);
+Route::get('/limitsexpenditures/users/{id}',[ExpendituresLimitsController::class,'getUsersForOne']);
+
+/**
+ * Expenditures Limits with Users
+ */
+Route::resource('/limitsusers',UsersExpendituresLimitsController::class);
+Route::delete('/limitsusers/delete/{id}',[UsersExpendituresLimitsController::class,'destroy2']);
+
+/**
  * reports for uzisha stock
  */
 Route::post('/reports/cashbook',[InvoicesController::class,'cashbook']);
@@ -482,5 +502,21 @@ Route::patch('/pressing/customers/update/{id}',[CustomerControllerController::cl
 Route::delete('/pressing/customers/delete/{id}',[CustomerControllerController::class,'delete']);
 
 //Orders
-Route::get('/pressing/orders/enterprise/{userid}',[InvoicesController::class,'pressingOrders']);
+Route::post('/pressing/orders/enterprise',[InvoicesController::class,'pressingOrders']);
 Route::post('/pressing/orders/new',[InvoicesController::class,'storeorder']);
+Route::put('/pressing/orders/update',[InvoicesController::class,'updateorder']);
+//update order status
+Route::post('/pressing/order/status/new',[InvoicesStatusController::class,'store']);
+Route::get('/pressing/order/status/{id}',[InvoicesStatusController::class,'statusForAspecificInvoice']);
+Route::post('/pressing/orders/statisticbystatus',[InvoicesStatusController::class,'statisticbyinvoices']);
+Route::post('/pressing/orders/statisticdetailsbystatus',[InvoicesStatusController::class,'statisticByDetailsInvoices']);
+
+//Update detail's order status
+Route::post('/pressing/order-detail/status/new',[DetailsInvoicesStatusController::class,'store']);
+
+//Status
+Route::get('/pressing/status/enterprise/{id}',[StatusController::class,'index']);
+Route::post('/pressing/status/new',[StatusController::class,'store']);
+Route::put('/pressing/status/update/{id}',[StatusController::class,'update2']);
+Route::patch('/pressing/status/update/{id}',[StatusController::class,'update2']);
+Route::delete('/pressing/status/delete/{id}',[StatusController::class,'destroy2']);

@@ -21,9 +21,11 @@ use App\Models\invoicesdetailsmaterials;
 use App\Models\invoicesdetailsreasons;
 use App\Models\invoicesdetailsSpots;
 use App\Models\invoicesdetailsStyles;
+use App\Models\moneys;
 use App\Models\OtherEntries;
 use App\Models\pressingStockStory;
 use Illuminate\Http\Request;
+use stdClass;
 
 class InvoicesController extends Controller
 {
@@ -574,6 +576,20 @@ class InvoicesController extends Controller
         }
     }
 
+    /**
+     * orders
+     */
+    //update order
+    public function updateorder(Request $request){
+        $response = new stdClass;
+        if (isset($request['id']) && !empty($request['id'])) {
+            $find= Invoices::find($request['id']);
+            if($find){
+                DB::update('update invoices set status=? where id = ? ',[$request['status']]);
+            }
+        }
+    }
+
     public function saveOrder(Request $request){
        
         $request['uuid']=$this->getUuId('PF','C');
@@ -743,6 +759,12 @@ class InvoicesController extends Controller
             $payments=DebtPayments::where('debt_payments.debt_id', '=', $debt[0]['id'])->get();
         }
         $invoices['debt']=$debt;
+        if (isset($invoices['money_id']) && !empty($invoices['money_id']) && $invoices['money_id']>0) {
+            $invoices['money']=moneys::find($invoices['money_id']);   
+        } 
+        if (isset($invoices['customer_id']) && !empty($invoices['customer_id']) && $invoices['customer_id']>0) {
+            $invoices['customer']=CustomerController::find($invoices['customer_id']);   
+        }
         $invoices['payments']=$payments;
         $invoices['details']=$details;
         return $invoices;

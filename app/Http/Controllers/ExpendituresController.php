@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expenditures;
+use Illuminate\Http\Request;
+use App\Models\UsersExpendituresLimits;
 use App\Http\Requests\StoreExpendituresRequest;
 use App\Http\Requests\UpdateExpendituresRequest;
-use Illuminate\Http\Request;
+use stdClass;
 
 class ExpendituresController extends Controller
 {
@@ -85,6 +87,8 @@ class ExpendituresController extends Controller
      */
     public function store(StoreExpendituresRequest $request)
     {
+        $response= new stdClass;
+        $message="unknown";
         if (!$request['uuid']) {
             $request['uuid']=$this->getUuId('EX','C');
         }
@@ -94,7 +98,20 @@ class ExpendituresController extends Controller
             $request['money_id']=$defaultmoney['id'];
         }
 
-        return $this->show(Expenditures::create($request->all()));
+        $ifexists=UsersExpendituresLimits::join('expenditures_limits as EL','users_expenditures_limits.limit_id','=','EL.id')->where('users_expenditures_limits.user_id','=',$request['user_id'])->get()->first();
+        if($ifexists){
+            if ($request['amount']<=$ifexists['maximum']) {
+                $message="success";
+                $response=$this->show(Expenditures::create($request->all()));
+            }else{
+                $message="unauthorized";
+            }
+        }else{
+            $message="success";
+            $response=$this->show(Expenditures::create($request->all()));
+        }
+        $response->message=$message;
+        return $response;
     }
 
     /**
