@@ -23,6 +23,7 @@ class CreateInvoiceDetailsTable extends Migration
             $table->double('price');
             $table->integer('money_id')->nullable();
             $table->double('total')->nullable();
+            // $table->string('description')->nullable();
             $table->string('uuid')->nullable();
             $table->boolean('sync_status')->nullable();
             $table->timestamps();

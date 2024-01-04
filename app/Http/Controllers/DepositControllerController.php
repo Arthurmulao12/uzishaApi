@@ -135,6 +135,29 @@ class DepositControllerController extends Controller
         //getting services for each deposit
                     
         return $services;
+    }   
+    
+    /**
+     * Add services to a specific deposit
+     */
+    public function withdrawServices(Request $request){
+        $counter=0;
+        
+        if (isset($request->services) && count($request->services)>0) {
+            foreach ($request->services as $service) {
+                $ifexist=DepositServices::where('service_id','=',$service['service_id'])->where('deposit_id','=',$service['deposit_id'])->first();
+                if($ifexist){
+                    $ifexist->delete();
+                    $counter ++;
+                    $service['deleted']=1;
+                }else{
+                    $service['deleted']=0;  
+                }
+            }
+        }
+
+        $request['number']=$counter;       
+        return $request;
     }
 
     /**

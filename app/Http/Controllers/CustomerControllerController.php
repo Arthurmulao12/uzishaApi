@@ -59,6 +59,23 @@ class CustomerControllerController extends Controller
     }
 
     /**
+     * importing data or multiple insert
+     */
+    public function importation(Request $request){
+        $data=[];
+        if(count($request->data)>0){
+            foreach ($request->data as $customer) {
+                if ( $newCustomer=$this->store(new StoreCustomerControllerRequest($customer))) {
+                    array_push($data,$newCustomer);
+                }
+            }
+        }
+
+        return $data;
+    }
+
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Models\CustomerController  $customerController

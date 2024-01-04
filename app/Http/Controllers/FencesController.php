@@ -22,9 +22,9 @@ class FencesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($enterprise)
     {
-        $list=collect(Fences::all());
+        $list=collect(Fences::where('enterprise_id','=',$enterprise)->get());
         $listdata=$list->map(function ($item,$key){
             return $this->show($item);
         });
@@ -105,6 +105,36 @@ class FencesController extends Controller
     public function create()
     {
         //
+    }
+
+    /**
+     * new store for pressing
+     */
+    public function pressingNew(Request $request){
+        $message="";
+        if(isset($request->date_concerned) && isset($request->user_id) && !empty($request->date_concerned) && !empty($request->user_id)){
+            //test if already fenced?
+            $ifexists=Fences::where('user_id','=',$request->user_id)->where('date_concerned','=',$request->date_concerned)->get();
+            if(count($ifexists)>0){
+                $message="already_fenced";
+                return $message;
+            }else{
+                $newdate=Carbon::create($request->date_concerned);
+                $request['date_concerned']=$newdate;
+                $newfence=Fences::create($request->all());
+                if($request->ticketings){
+                    foreach($request->ticketings as $ticketing){
+                        $ticketing['fence_id']=$newfence['id'];
+                        FenceTicketing::create($ticketing);
+                    }
+                }
+                return $this->show($newfence);
+            }
+        }
+        else{
+            $message="data_no_conform";
+            return $message;
+        } 
     }
 
     /**

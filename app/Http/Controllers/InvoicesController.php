@@ -14,6 +14,7 @@ use App\Models\Accounts;
 use App\Models\CustomerController;
 use App\Models\DepositServices;
 use App\Models\DepositsUsers;
+use App\Models\DetailsInvoicesStatus;
 use App\Models\Expenditures;
 use App\Models\invoicesdetailscolors;
 use App\Models\invoicesdetailsdefects;
@@ -21,6 +22,7 @@ use App\Models\invoicesdetailsmaterials;
 use App\Models\invoicesdetailsreasons;
 use App\Models\invoicesdetailsSpots;
 use App\Models\invoicesdetailsStyles;
+use App\Models\invoicesStatus;
 use App\Models\moneys;
 use App\Models\OtherEntries;
 use App\Models\pressingStockStory;
@@ -429,7 +431,7 @@ class InvoicesController extends Controller
         ->leftjoin('services_controllers','invoice_details.service_id','=','services_controllers.id')
         ->leftjoin('unit_of_measure_controllers as UOM','services_controllers.uom_id','=','UOM.id')
         ->where('invoice_details.invoice_id','=',$invoices->id)
-        ->get(['UOM.name as uom_name','UOM.symbol as uom_symbol','M.money_name','M.abreviation','services_controllers.name as service_name','invoice_details.*']);
+        ->get(['UOM.name as uom_name','UOM.symbol as uom_symbol','M.money_name','M.abreviation','services_controllers.name as service_name','services_controllers.description','invoice_details.*']);
 
         $invoice=Invoices::leftjoin('customer_controllers as C', 'invoices.customer_id','=','C.id')
         ->leftjoin('moneys as M', 'invoices.money_id','=','M.id')
@@ -748,6 +750,7 @@ class InvoicesController extends Controller
             $value['materials']=invoicesdetailsmaterials::join('materials','invoicesdetailsmaterials.material_id','=','materials.id')->where('invoicesdetailsmaterials.detail_id','=',$value['id'])->get('materials.*');
             $value['reasons']=invoicesdetailsreasons::join('reasons','invoicesdetailsreasons.reason_id','=','reasons.id')->where('invoicesdetailsreasons.detail_id','=',$value['id'])->get('reasons.*');
             $value['styles']=invoicesdetailsStyles::join('styles','invoicesdetails_styles.style_id','=','styles.id')->where('invoicesdetails_styles.detail_id','=',$value['id'])->get('styles.*');
+            $value['status']=DetailsInvoicesStatus::join('statuses as ST','details_invoices_statuses.status_id','=','ST.id')->where('detail_id','=',$value['id'])->get('ST.*')->last();
         }
 
         $debt=Debts::join('invoices as I','debts.invoice_id','=','I.id')
@@ -765,8 +768,12 @@ class InvoicesController extends Controller
         if (isset($invoices['customer_id']) && !empty($invoices['customer_id']) && $invoices['customer_id']>0) {
             $invoices['customer']=CustomerController::find($invoices['customer_id']);   
         }
+
         $invoices['payments']=$payments;
         $invoices['details']=$details;
+        //new code
+        $invoices['status']=invoicesStatus::join('statuses as ST','invoices_statuses.status_id','=','ST.id')->where('invoice_id','=',$invoices['id'])->get('ST.*')->last();
+        //end new code
         return $invoices;
     }
 }

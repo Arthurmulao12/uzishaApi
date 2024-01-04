@@ -240,6 +240,7 @@ Route::patch('/deposits/update/{id}',[DepositControllerController::class,'update
 Route::delete('/deposits/delete/{id}',[DepositControllerController::class,'delete2']);
 Route::post('/deposits/participants',[DepositControllerController::class,'participants']);
 Route::post('/deposit/addservices',[DepositControllerController::class,'addservices']);
+Route::post('/deposit/services/delete',[DepositControllerController::class,'withdrawServices']);
 Route::post('/deposit/users',[DepositControllerController::class,'depositForUser']);
 
 //Deposits users
@@ -311,6 +312,7 @@ Route::put('/customers/update/{id}',[CustomerControllerController::class,'update
 Route::patch('/customers/update/{id}',[CustomerControllerController::class,'update2']);
 Route::delete('/customers/delete/{id}',[CustomerControllerController::class,'delete']);
 Route::post('/customers/uuid',[CustomerControllerController::class,'getbyuuid']);
+Route::post('/customers/importation',[CustomerControllerController::class,'importation']);
 
 //PROVIDERS
 Route::apiResource('providers',ProviderControllerController::class);
@@ -367,7 +369,7 @@ Route::get('/invoices/customer/{id}',[InvoicesController::class,'foracustomer'])
 Route::post('/invoices/filteredcustomer',[InvoicesController::class,'forACustomerFiltered']);
 Route::post('/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
-Route::post('/invoices/users/',[InvoicesController::class,'foraspecificuser']);
+Route::post('/invoices/users',[InvoicesController::class,'foraspecificuser']);
 Route::patch('/invoices/cancel',[InvoicesController::class,'cancelling']);
 Route::get('/orders/enterprise/{id}',[InvoicesController::class,'enterpriseorders']);
 Route::get('/orders/users/{userid}',[InvoicesController::class,'userorders']);
@@ -389,6 +391,7 @@ Route::patch('accounts/update/{id}',[AccountsController::class,'update2']);
 Route::get('accounts/enterprise/{enterprise_id}',[AccountsController::class,'index']);
 Route::get('accounts/getone/{account_id}',[AccountsController::class,'showone']);
 Route::delete('accounts/delete/{id}',[AccountsController::class,'delete']);
+Route::post('/accounts/importation',[AccountsController::class,'importation']);
 
 Route::apiResource('expenditures',ExpendituresController::class);
 Route::post('/expenditures/doneby',[ExpendituresController::class,'doneby']);
@@ -520,3 +523,8 @@ Route::post('/pressing/status/new',[StatusController::class,'store']);
 Route::put('/pressing/status/update/{id}',[StatusController::class,'update2']);
 Route::patch('/pressing/status/update/{id}',[StatusController::class,'update2']);
 Route::delete('/pressing/status/delete/{id}',[StatusController::class,'destroy2']);
+
+//Pressing fencing
+Route::post('/pressing/fences/new',[FencesController::class,'store']);
+Route::get('/pressing/fences/enterprise/{id}',[FencesController::class,'index']);
+Route::post('/pressing/fences/dataforfencing',[FencesController::class,'dataforfencing']);

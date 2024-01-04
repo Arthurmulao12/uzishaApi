@@ -31,6 +31,21 @@ class AccountsController extends Controller
     }
 
     /**
+     * importing data
+     */
+    public function importation(Request $request){
+        $data=[];
+        if(count($request->data)>0){
+            foreach ($request->data as $account) {
+                if ( $newAccount=$this->store(new StoreAccountsRequest($account))) {
+                    array_push($data,$newAccount);
+                }
+            }
+        }
+
+        return $data;
+    }
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \App\Http\Requests\StoreAccountsRequest  $request
@@ -38,12 +53,6 @@ class AccountsController extends Controller
      */
     public function store(StoreAccountsRequest $request)
     {
-        // $user = User::find(1);
-      
-        // return response()->json([
-        //    'data'=>$user,
-        //    'token'=>'token'
-        // ]);
         return Accounts::create($request->all());
     }
 
