@@ -26,10 +26,25 @@ class ServicesControllerController extends Controller
         });
         return $listdata;
     }
-/**
- * turning back articles for users
- */
-    public function services_list(Request $request){ $listdata=[];
+
+    /**
+     * searching by name
+     */
+    public function search($enterprise_id){
+         
+        $list=ServicesController::where('enterprise_id', '=', $enterprise_id)->paginate(100);
+        $list->getCollection()->transform(function ($item){
+            return $this->show($item);
+        });
+       
+        return $list;
+    }
+
+    /**
+     * turning back articles for users
+     */
+    public function services_list(Request $request){ 
+        $listdata=[];
         if($request['user_id']){
             $user=$this->getinfosuser($request['user_id']);
             $Ese=$this->getEse($request['user_id']);
@@ -81,7 +96,27 @@ class ServicesControllerController extends Controller
             }
                 
         return $data=['deposit'=>$deposit,'services'=>$services] ;
+    } 
+    
+    /**
+     * searching data by word for a specific deposit
+     */
+    public function searchinarticlesdeposit(Request $request){
+        //getting services for each deposit
+        $data=collect(
+            DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+            ->where('deposit_id','=',$request['deposit_id'])
+            ->where('S.name','LIKE',"%$request->word%")
+            ->limit(10)
+            ->get('deposit_services.*'));
+          
+            $data=$data->map(function ($item){
+                return $this->servicedetail($item);
+            });
+        
+            return $data;
     }
+    
     /**
      * getting detail for a service in deposit
      */

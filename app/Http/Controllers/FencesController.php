@@ -96,7 +96,113 @@ class FencesController extends Controller
             $message="data_no_conform";
             return ['message'=>$message,'fence'=>$fence];
         }
+    }   
+    
+    /**
+     * getting data for fencing
+     */
+    public function dataforfencingsumerized(Request $request){
+        $message='';
+        $fence= new stdClass;
+        if(isset($request->date_concerned) && isset($request->user_id) && !empty($request->date_concerned) && !empty($request->user_id)){
+            //test if already fenced?
+            $ifexists=Fences::where('user_id','=',$request->user_id)->where('date_concerned','=',$request->date_concerned)->get();
+            if(count($ifexists)>0){
+                $message="already_fenced";
+                return ['message'=>$message,'fence'=>$fence];
+            }else{
+                $sellsCash=Invoices::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('type_facture','=','cash')
+                ->where('edited_by_id','=',$request->user_id)->get();
+                
+                $sellsCredit=Invoices::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('type_facture','=','credit')
+                ->where('edited_by_id','=',$request->user_id)->get();
+
+                $entries=OtherEntries::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('user_id','=',$request->user_id)->get();
+
+                $payments=DebtPayments::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('done_by_id','=',$request->user_id)->get();
+
+                $expenditures=Expenditures::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('user_id','=',$request->user_id)->get();
+
+                $cautions=Cautions::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('user_id','=',$request->user_id)->get();
+
+                // $objet =['sells'=>$sells->sum('total'),'payments'=>$payments->sum('amount_payed'),'expenditures'=>$expenditures->sum('amount'),'cautions'=>$cautions->sum('amount'),'entries'=>$entries->sum('amount')];
+                $objet=[ 'user_id'=>$request->user_id,
+                'amount_due'=>($sellsCash->sum('total')+$cautions->sum('amount')+$payments->sum('amount_payed')+$entries->sum('amount'))-($sellsCredit->sum('total')+$expenditures->sum('amount')),
+                'amount_paid'=>0,
+                'money_id'=>$this->getdefaultmoney($this->getEse($request->user_id)['id'])['id'],
+                'totalsell'=>$sellsCash->sum('total')+$sellsCredit->sum('total'),
+                'totalcash'=>$sellsCash->sum('total'),
+                'totalcredits'=>$sellsCredit->sum('total'),
+                'totalbonus'=>0,
+                'totalcautions'=>$cautions->sum('amount'),
+                'totaldebts'=>$payments->sum('amount_payed'),
+                'depositcautions'=>$cautions->sum('amount'),
+                'totalexpenditures'=>$expenditures->sum('amount'),
+                'totalentries'=>$entries->sum('amount'),
+                'sold'=>0,
+                'enterprise_id'=>$this->getEse($request->user_id)['id']];
+                    // $objet =['sells'=>$sells->sum('total'),'payments'=>$payments->sum('amount_payed'),'expenditures'=>$expenditures->sum('amount'),'cautions'=>$cautions->sum('amount'),'entries'=>$entries->sum('amount')];
+                    return ['message'=>$message,'fence'=>$objet];
+                }
+        }
+        else if(isset($request->user_id) && !empty($request->user_id) && empty($request->date_concerned)){
+                $date_concerned=date('Y-m-d');
+              //test if already fenced?
+              $ifexists=Fences::where('user_id','=',$request->user_id)->where('date_concerned','=',$date_concerned)->get();
+              if(count($ifexists)>0){
+                  $message="already_fenced";
+                  return ['message'=>$message,'fence'=>$fence];
+              }else{
+                $sellsCash=Invoices::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('type_facture','=','cash')
+                ->where('edited_by_id','=',$request->user_id)->get();
+                
+                $sellsCredit=Invoices::whereBetween('created_at',[$request->date_concerned.' 00:00:00',$request->date_concerned.' 23:59:59'])
+                ->where('type_facture','=','credit')
+                ->where('edited_by_id','=',$request->user_id)->get();
+
+                  $entries=OtherEntries::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
+                  ->where('user_id','=',$request->user_id)->get();
+  
+                  $payments=DebtPayments::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
+                  ->where('done_by_id','=',$request->user_id)->get();
+  
+                  $expenditures=Expenditures::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
+                  ->where('user_id','=',$request->user_id)->get();
+  
+                  $cautions=Cautions::whereBetween('created_at',[$date_concerned.' 00:00:00',$date_concerned.' 23:59:59'])
+                  ->where('user_id','=',$request->user_id)->get();
+  
+                  $objet=[ 'user_id'=>$request->user_id,
+                  'amount_due'=>($sellsCash->sum('total')+$cautions->sum('amount')+$payments->sum('amount_payed')+$entries->sum('amount'))-($sellsCredit->sum('total')+$expenditures->sum('amount')),
+                  'amount_paid'=>0,
+                  'money_id'=>$this->getdefaultmoney($this->getEse($request->user_id)['id'])['id'],
+                  'totalsell'=>$sellsCash->sum('total')+$sellsCredit->sum('total'),
+                  'totalcash'=>$sellsCash->sum('total'),
+                  'totalcredits'=>$sellsCredit->sum('total'),
+                  'totalbonus'=>0,
+                  'totalcautions'=>$cautions->sum('amount'),
+                  'totaldebts'=>$payments->sum('amount_payed'),
+                  'depositcautions'=>$cautions->sum('amount'),
+                  'totalexpenditures'=>$expenditures->sum('amount'),
+                  'totalentries'=>$entries->sum('amount'),
+                  'sold'=>0,
+                  'enterprise_id'=>$this->getEse($request->user_id)['id']];
+                  return ['message'=>$message,'fence'=>$objet];
+              }
+        }
+        else{
+            $message="data_no_conform";
+            return ['message'=>$message,'fence'=>$fence];
+        }
     }
+
     /**
      * Show the form for creating a new resource.
      *

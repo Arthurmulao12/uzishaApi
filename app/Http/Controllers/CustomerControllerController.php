@@ -23,6 +23,29 @@ class CustomerControllerController extends Controller
         return $listdata;
     }
 
+
+    /**
+     * search
+     */
+    
+     public function search($enterpriseid){
+    
+        $list=CustomerController::where('enterprise_id','=',$enterpriseid)->paginate(100);
+        $list->getCollection()->transform(function ($item){
+            return $this->show($item);
+        });
+        return $list;
+     }
+
+     /**
+      * Search by words
+      */
+      public function searchbywords(Request $request){
+    
+        $list=CustomerController::where('enterprise_id','=',$request['enterpriseid'])->where('customerName','LIKE',"%$request->word%")->limit(10)->get();
+
+        return $list;
+     }
     /**
      *Getting providers 
      */

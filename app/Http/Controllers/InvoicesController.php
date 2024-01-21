@@ -49,19 +49,42 @@ class InvoicesController extends Controller
      * Cancelling
      */
     public function cancelling(Request $request){
-        $invoice=Invoices::find($request['id']);
+        // return $request;
+       $invoice=Invoices::find($request['invoice']['id']);
         if($invoice){
-            $request['status']='cancelled';
-            $invoice->update($request->all());
-
-            return response()->json([
-                'data' =>$this->show($invoice),
-                'message'=>'cancelled'
-            ]);
+             //before deleting remove details
+             $details=InvoiceDetails::where('invoice_id','=',$invoice->id)->get();
+             foreach ($details as $detail) {
+                 InvoiceDetails::destroy($detail);
+             }
+         //remove stock history and making returning stock
+         $histories=StockHistoryController::where('invoice_id','=',$invoice->id);
+         foreach($histories as $history){
+             $history['type']='discount';
+             $history['motif']='ristourne appliqué à la suppréssion facture';
+             StockHistoryController::create($history);
+             StockHistoryController::destroy($history);
+         }
+         //remove debts and payments raws
+             $debts=Debts::where('invoice_id','=',$invoice->id)->get();
+             foreach($debts as $debt){
+                 $payments=DebtPayments::where('debt_payments.debt_id', '=', $debt->id)->get();
+                 foreach ($payments as $payment) {
+                     DebtPayments::destroy($payment);
+                 }
+                 Debts::destroy($debt);
+             }
+             
+            return  $invoice->delete();
+            // $deleted=$this->destroy($invoice);
+            // if ($deleted) {
+            //     return response()->json([
+            //         'message'=>'cancelled'
+            //     ]);
+            // }
         }else{
             return response()->json([
-                'data' =>$this->show($invoice),
-                'message'=>'failed'
+                'message'=>'unknown'
             ]);
         }
     }
@@ -340,7 +363,7 @@ class InvoicesController extends Controller
             //check if debt
             if($invoice['type_facture']=='credit'){
                 if($invoice['customer_id']>0){
-                    Debts::create([
+                    $debt=Debts::create([
                         'created_by_id'=>$invoice['edited_by_id'],
                         'customer_id'=>$invoice['customer_id'],
                         'invoice_id'=>$invoice['id'],
@@ -350,6 +373,16 @@ class InvoicesController extends Controller
                         'uuid'=>$this->getUuId('D','C'),
                         'sync_status'=>'1'
                     ]);
+
+                    //if there is amount paid creating a payment
+                    if ($invoice['amount_paid']>0) {
+                        DebtPayments::create([
+                            'done_by_id'=>$invoice['edited_by_id'],
+                            'debt_id'=>$debt['id'],
+                            'amount_payed'=>$invoice['amount_paid'],
+                            'uuid'=>$this->getUuId('P','C')
+                        ]);
+                    } 
                 }
             }
 
@@ -439,13 +472,13 @@ class InvoicesController extends Controller
         ->leftjoin('tables as T', 'invoices.table_id','=','T.id')
         ->leftjoin('servants as S', 'invoices.servant_id','=','S.id')
         ->where('invoices.id', '=', $invoices->id)
-        ->get(['T.id as table_id','T.name as table_name','S.id as servant_id','S.name as servant_name','M.abreviation','M.money_name','U.user_name','U.full_name','C.customerName as customer_name','invoices.*'])[0];
+        ->get(['T.id as table_id','T.name as table_name','S.id as servant_id','S.name as servant_name','M.abreviation','M.money_name','U.user_name','U.full_name','C.phone','C.mail','C.adress','C.customerName as customer_name','invoices.*'])[0];
 
         $debt=Debts::join('invoices as I','debts.invoice_id','=','I.id')
         ->leftjoin('moneys as M','I.money_id','=','M.id')
         ->leftjoin('customer_controllers as C','I.customer_id','=','C.id')
         ->where('invoice_id','=',$invoices->id)
-        ->get(['M.money_name','M.abreviation','C.customerName','I.uuid as invoiceUuid','I.total as invoice_total_amount','I.amount_paid as invoice_amount_paid','debts.*']);
+        ->get(['M.money_name','M.abreviation','C.phone','C.mail','C.adress','C.customerName','I.uuid as invoiceUuid','I.total as invoice_total_amount','I.amount_paid as invoice_amount_paid','debts.*']);
         if(count($debt)>0){
             $payments=DebtPayments::where('debt_payments.debt_id', '=', $debt[0]['id'])->get();
         }
@@ -720,12 +753,33 @@ class InvoicesController extends Controller
      * get orders
      */
     public function pressingOrders(Request $request){
+        $user=$this->getinfosuser($request['user_id']);
         $ese=$this->getEse($request['user_id']);
-        $list=collect(Invoices::where('type_facture','=','press-order')->where('status','=','0')->where('enterprise_id','=',$ese['id'])->get());
-        $listdata=$list->map(function ($item){
-            return $this->ShowInvoicePressing($item);
-        });
-        return $listdata;
+
+        if(isset($request['from']) && !empty($request['from']) && isset($request['to']) && !empty($request['to'])){
+            $list=collect(Invoices::where('edited_by_id','=',$request->user_id)
+            ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->get());
+            $listdata=$list->map(function ($item,$key){
+                return $this->ShowInvoicePressing($item);
+            });
+            return $listdata;
+        }
+        else{
+            $from=date('Y-m-d');
+            $list=collect(Invoices::where('edited_by_id','=',$request->user_id)
+            ->whereBetween('created_at',[$from.' 00:00:00',$from.' 23:59:59'])->get());
+            $listdata=$list->map(function ($item,$key){
+                return $this->ShowInvoicePressing($item);
+            });
+            return $listdata;
+        }
+
+        // $list=collect(Invoices::where('type_facture','!=','proforma')->where('status','=','0')->where('enterprise_id','=',$ese['id'])->get());
+        // $listdata=$list->map(function ($item){
+        //     return $this->ShowInvoicePressing($item);
+        // });
+        // return $listdata;
     }
 
     /**
@@ -744,12 +798,12 @@ class InvoicesController extends Controller
 
         foreach ($details as $value) {
             //getting others informations for each detail
-            $value['colors']=invoicesdetailscolors::join('colors','invoicesdetailscolors.color_id','=','colors.id')->where('invoicesdetailscolors.detail_id','=',$value['id'])->get('colors.*');
-            $value['defects']=invoicesdetailsdefects::join('defects','invoicesdetailsdefects.defect_id','=','defects.id')->where('invoicesdetailsdefects.detail_id','=',$value['id'])->get('defects.*');
-            $value['spots']=invoicesdetailsSpots::join('spots','invoicesdetails_spots.spot_id','=','spots.id')->where('invoicesdetails_spots.detail_id','=',$value['id'])->get('spots.*');
-            $value['materials']=invoicesdetailsmaterials::join('materials','invoicesdetailsmaterials.material_id','=','materials.id')->where('invoicesdetailsmaterials.detail_id','=',$value['id'])->get('materials.*');
-            $value['reasons']=invoicesdetailsreasons::join('reasons','invoicesdetailsreasons.reason_id','=','reasons.id')->where('invoicesdetailsreasons.detail_id','=',$value['id'])->get('reasons.*');
-            $value['styles']=invoicesdetailsStyles::join('styles','invoicesdetails_styles.style_id','=','styles.id')->where('invoicesdetails_styles.detail_id','=',$value['id'])->get('styles.*');
+            $value['colors']=invoicesdetailscolors::join('colors','invoicesdetailscolors.color_id','=','colors.id')->where('invoicesdetailscolors.detail_id','=',$value['id'])->get(['colors.*','invoicesdetailscolors.quantity']);
+            $value['defects']=invoicesdetailsdefects::join('defects','invoicesdetailsdefects.defect_id','=','defects.id')->where('invoicesdetailsdefects.detail_id','=',$value['id'])->get(['defects.*','invoicesdetailsdefects.quantity']);
+            $value['spots']=invoicesdetailsSpots::join('spots','invoicesdetails_spots.spot_id','=','spots.id')->where('invoicesdetails_spots.detail_id','=',$value['id'])->get(['spots.*','invoicesdetails_spots.quantity']);
+            $value['materials']=invoicesdetailsmaterials::join('materials','invoicesdetailsmaterials.material_id','=','materials.id')->where('invoicesdetailsmaterials.detail_id','=',$value['id'])->get(['materials.*','invoicesdetailsmaterials.quantity']);
+            $value['reasons']=invoicesdetailsreasons::join('reasons','invoicesdetailsreasons.reason_id','=','reasons.id')->where('invoicesdetailsreasons.detail_id','=',$value['id'])->get(['reasons.*','invoicesdetailsreasons.quantity']);
+            $value['styles']=invoicesdetailsStyles::join('styles','invoicesdetails_styles.style_id','=','styles.id')->where('invoicesdetails_styles.detail_id','=',$value['id'])->get(['styles.*','invoicesdetails_styles.quantity']);
             $value['status']=DetailsInvoicesStatus::join('statuses as ST','details_invoices_statuses.status_id','=','ST.id')->where('detail_id','=',$value['id'])->get('ST.*')->last();
         }
 

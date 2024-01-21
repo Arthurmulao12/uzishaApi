@@ -395,6 +395,19 @@ class UsersController extends Controller
     {
         //
     }
+    /**
+     * make user as superAdmin
+     */
+    public function makeassuperadmin(Request $request){
+        // return $request;
+        if($request['user_type']==='super_admin'){
+            $type="admin";
+        }else{
+            $type="super_admin";
+        }
+        DB::update('update users set user_type =? where id = ?',[$type,$request['id']]);
+        return $this->show(User::find($request['id']));
+    }
 
     /**
      * Store a newly created resource in storage.

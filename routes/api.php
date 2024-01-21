@@ -101,6 +101,7 @@ Route::post('/users/updatestatus',[UsersController::class,'changerStatus']);
 Route::post('/users/updatepassword',[UsersController::class,'updatePassword']);
 Route::get('/getuser',[UsersController::class,'getone']);
 Route::post('/users/dashboard/{id}',[UsersController::class,'dashboard']);
+Route::post('/users/makeassuperadmin',[UsersController::class,'makeassuperadmin']);
 
 
 //connection or login
@@ -371,6 +372,7 @@ Route::post('/invoices/reportbyuser',[InvoicesController::class,'reportUserSelli
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
 Route::post('/invoices/users',[InvoicesController::class,'foraspecificuser']);
 Route::patch('/invoices/cancel',[InvoicesController::class,'cancelling']);
+Route::post('/invoices/cancel',[InvoicesController::class,'cancelling']);
 Route::get('/orders/enterprise/{id}',[InvoicesController::class,'enterpriseorders']);
 Route::get('/orders/users/{userid}',[InvoicesController::class,'userorders']);
 
@@ -528,3 +530,31 @@ Route::delete('/pressing/status/delete/{id}',[StatusController::class,'destroy2'
 Route::post('/pressing/fences/new',[FencesController::class,'store']);
 Route::get('/pressing/fences/enterprise/{id}',[FencesController::class,'index']);
 Route::post('/pressing/fences/dataforfencing',[FencesController::class,'dataforfencing']);
+
+//Pressing expenditures
+Route::post('/pressing/expenditures',[ExpendituresController::class,'store']);
+Route::post('/pressing/expenditures/doneby',[ExpendituresController::class,'doneby']);
+Route::post('/pressing/expenditures/delete/{id}',[ExpendituresController::class,'delete']);
+
+//Pressing accounts
+Route::post('/pressing/accounts/new',[AccountsController::class,'store']);
+Route::get('/pressing/accounts/enterprise/{enterprise_id}',[AccountsController::class,'index']);
+Route::put('/pressing/accounts/update/{id}',[AccountsController::class,'update2']);
+Route::patch('pressing/accounts/update/{id}',[AccountsController::class,'update2']);
+
+//Pressing otherentries
+Route::post('/pressing/otherentries',[OtherEntriesController::class,'store']);
+Route::get('/pressing/otherentries/update/{id}',[OtherEntriesController::class,'update2']);
+Route::post('/pressing/otherentries/doneby',[OtherEntriesController::class,'doneby']);
+
+/**
+ * SEARCHING METHODS
+ */
+//Services
+Route::get('/services/search/enterprise/{enterprise_id}',[ServicesControllerController::class,'search']);
+Route::post('/services/search/deposit',[ServicesControllerController::class,'searchinarticlesdeposit']);
+
+//CUSTOMERS
+Route::get('/customers/search/enterprise/{id}',[CustomerControllerController::class,'search']);
+Route::post('/customers/search-words',[CustomerControllerController::class,'searchbywords']);
+
