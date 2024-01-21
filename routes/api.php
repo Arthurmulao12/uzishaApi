@@ -552,7 +552,10 @@ Route::post('/pressing/otherentries/doneby',[OtherEntriesController::class,'done
  */
 //Services
 Route::get('/services/search/enterprise/{enterprise_id}',[ServicesControllerController::class,'search']);
-Route::post('/services/search/deposit',[ServicesControllerController::class,'searchinarticlesdeposit']);
+
+//DEPOSIT AND SERVICES
+Route::post('/deposit/services/searchbywords',[ServicesControllerController::class,'searchinarticlesdeposit']);
+Route::post('/deposit/services/searchbybarcode',[ServicesControllerController::class,'searchinarticlesbybarcode']);
 
 //CUSTOMERS
 Route::get('/customers/search/enterprise/{id}',[CustomerControllerController::class,'search']);

@@ -13,6 +13,7 @@ use App\Models\StockHistoryController;
 use App\Http\Requests\StoreServicesControllerRequest;
 use App\Http\Requests\UpdateServicesControllerRequest;
 use App\Models\InvoiceDetails;
+use stdClass;
 
 use function PHPUnit\Framework\isNull;
 
@@ -102,7 +103,8 @@ class ServicesControllerController extends Controller
      * searching data by word for a specific deposit
      */
     public function searchinarticlesdeposit(Request $request){
-        //getting services for each deposit
+        if($request->word && !empty($request->word)){
+            //getting services for the deposit
         $data=collect(
             DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
             ->where('deposit_id','=',$request['deposit_id'])
@@ -115,8 +117,30 @@ class ServicesControllerController extends Controller
             });
         
             return $data;
+        }else{
+            return [];
+        }
+        
     }
     
+    /**
+     * searching data by word for a specific deposit
+     */
+    public function searchinarticlesbybarcode(Request $request){
+        $data= new stdClass;
+        if($request->word && !empty($request->word)){
+            //getting services for the deposit
+            $data=DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+                ->where('deposit_id','=',$request['deposit_id'])
+                ->where('S.codebar','=',"$request->word")
+                ->get('deposit_services.*')->first();
+                if ($data) {
+                    $data=$this->servicedetail($data);
+                }
+           
+        }
+        return $data;
+    }
     /**
      * getting detail for a service in deposit
      */

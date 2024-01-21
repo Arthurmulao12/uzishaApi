@@ -22,7 +22,14 @@ class DepositControllerController extends Controller
      */
     public function index($enterpriseid)
     {
-        return DepositController::where('enterprise_id','=',$enterpriseid)->get();
+    
+        $data=collect(DepositController::where('enterprise_id','=',$enterpriseid)->get());
+        $data=$data->map(function ($item){
+            $item['categories']=$this->getcategories($item['id']);
+            return $item;
+        });
+
+        return $data;
     }
 
     /**
@@ -33,7 +40,8 @@ class DepositControllerController extends Controller
         $user=$this->getinfosuser($request['user_id']);
         $enterprise=$this->getEse($user['id']);
         if ($user['user_type']=='super_admin') {
-            $deposits=DepositController::where('enterprise_id','=',$enterprise['id'])->get();
+            $deposits=$this->index($enterprise['id']);
+            // $deposits=DepositController::where('enterprise_id','=',$enterprise['id'])->get();
         } else {
             $deposits=DepositsUsers::join('deposit_controllers as D','deposits_users.deposit_id','=','D.id')->where('deposits_users.user_id','=',$request->user_id)->get('D.*');
         }
@@ -161,6 +169,18 @@ class DepositControllerController extends Controller
     }
 
     /**
+     * categories for deposit
+     */
+    public function getcategories($deposit){
+        $actual=DepositController::find($deposit);
+        if($actual['type']==="group"){
+            return CategoriesServicesController::where('enterprise_id','=',$actual['enterprise_id'])->get();
+        }else{
+            return CategoriesServicesController::join('deposits_categories as DC','categories_services_controllers.id','=','DC.category_id')->Where('DC.deposit_id','=',$actual['id'])->get('categories_services_controllers.*');
+        }
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Models\DepositController  $depositController
@@ -219,7 +239,7 @@ class DepositControllerController extends Controller
         DepositsUsers::where('deposit_id','=',$id)->delete(); //deleting users
         DepositsCategories::where('deposit_id','=',$id)->delete(); //deleting categories
         DepositServices::where('deposit_id','=',$id)->delete(); //deleting services
-        StockHistoryController::where('deposit_id','=',$id)->delete(); //deleting stockhistory
+        // StockHistoryController::where('deposit_id','=',$id)->delete(); //deleting stockhistory
         
        return DepositController::find($id)->delete();
     }
