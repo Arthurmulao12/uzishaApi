@@ -153,6 +153,14 @@ class ExpendituresController extends Controller
     }
 
     /**
+     * delete operation
+     */
+    public function delete($expenditures){
+        $expenditures=Expenditures::find($expenditures);
+        return $expenditures->delete();
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Expenditures  $expenditures
@@ -160,6 +168,7 @@ class ExpendituresController extends Controller
      */
     public function destroy(Expenditures $expenditures)
     {
+        $expenditures=Expenditures::find($expenditures);
         return Expenditures::destroy($expenditures);
     }
 }

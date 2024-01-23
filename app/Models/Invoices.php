@@ -34,6 +34,7 @@ class Invoices extends Model
         'status',
         'uuid',
         'total_received',
-        'netToPay'       
+        'netToPay',
+        'date_operation'       
     ];
 }

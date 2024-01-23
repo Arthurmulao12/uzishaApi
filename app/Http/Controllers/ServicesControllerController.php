@@ -105,15 +105,91 @@ class ServicesControllerController extends Controller
     public function searchinarticlesdeposit(Request $request){
         if($request->word && !empty($request->word)){
             //getting services for the deposit
-        $data=collect(
-            DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
-            ->where('deposit_id','=',$request['deposit_id'])
-            ->where('S.name','LIKE',"%$request->word%")
-            ->limit(10)
-            ->get('deposit_services.*'));
+            if($request['type']=="stock"){
+                $data=collect(
+                    DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+                    ->where('deposit_id','=',$request['deposit_id'])
+                    ->where('S.type','=','1')
+                    ->where('S.name','LIKE',"%$request->word%")
+                    ->limit(10)
+                    ->get('deposit_services.*'));
+            }else{
+                $data=collect(
+                    DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+                    ->where('deposit_id','=',$request['deposit_id'])
+                    ->where('S.name','LIKE',"%$request->word%")
+                    ->limit(10)
+                    ->get('deposit_services.*'));
+            }
+       
           
             $data=$data->map(function ($item){
                 return $this->servicedetail($item);
+            });
+        
+            return $data;
+        }else{
+            return [];
+        }
+        
+    }
+    
+    /**
+     * searching data by word for a specific Ese
+     */
+    public function searchinarticlesbyname(Request $request){
+        
+        if($request->word && !empty($request->word)){
+            if($request['type']=="stock"){
+                $data=collect(
+                    ServicesController::where('enterprise_id','=',$request['enterprise_id'])
+                    ->where('name','LIKE',"%$request->word%")
+                    ->where('type','=',"1")
+                    ->limit(10)
+                    ->get());
+            }else{
+                $data=collect(
+                    ServicesController::where('enterprise_id','=',$request['enterprise_id'])
+                    ->where('name','LIKE',"%$request->word%")
+                    ->limit(10)
+                    ->get());
+            }
+                
+            $data=$data->map(function ($item){
+                return $this->show($item);
+            });
+        
+            return $data;
+        }else{
+            return [];
+        }
+        
+    }    
+    
+    /**
+     * searching data by word for a specific deposit
+     */
+    public function searchbycodebar(Request $request){
+        
+        if($request->word && !empty($request->word)){
+            //getting services for the deposit
+            if($request['type']=="stock"){
+                $data=collect(
+                    ServicesController::where('enterprise_id','=',$request['enterprise_id'])
+                    ->where('codebar','=',$request->word)
+                    ->where('type','=',"1")
+                    ->limit(10)
+                    ->get());
+            }else{
+                $data=collect(
+                    ServicesController::where('enterprise_id','=',$request['enterprise_id'])
+                    ->where('codebar','=',$request->word)
+                    ->limit(10)
+                    ->get());
+            }
+       
+            $data=$data->map(function ($item){
+                return $this->show($item);
             });
         
             return $data;
@@ -130,17 +206,47 @@ class ServicesControllerController extends Controller
         $data= new stdClass;
         if($request->word && !empty($request->word)){
             //getting services for the deposit
-            $data=DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+            if($request['type']=="stock"){
+              
+                $data=DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
+                ->where('deposit_id','=',$request['deposit_id'])
+                ->where('S.codebar','=',"$request->word")
+                ->where('S.type','=',"1")
+                ->get('deposit_services.*')->first();
+                if ($data) {
+                    $data=$this->servicedetail($data);
+                }
+    
+            }else{
+                $data=DepositServices::join('services_controllers as S', 'deposit_services.service_id','=','S.id')
                 ->where('deposit_id','=',$request['deposit_id'])
                 ->where('S.codebar','=',"$request->word")
                 ->get('deposit_services.*')->first();
                 if ($data) {
                     $data=$this->servicedetail($data);
                 }
+            }
            
         }
         return $data;
     }
+
+    /**
+     * reset all services
+     */
+    public function resetallservices(Request $request){
+        $services=ServicesController::where('enterprise_id','=',$request['enterprise_id'])->get();
+        foreach ($services as $value) {
+            //delete prices
+            PricesCategories::where('service_id','=',$value['id'])->delete();
+            DepositServices::where('service_id','=',$value['id'])->delete();
+            StockHistoryController::where('service_id','=',$value['id'])->delete();
+            InvoiceDetails::where('service_id','=',$value['id'])->delete();
+        }
+
+        return $services->delete();
+    }
+
     /**
      * getting detail for a service in deposit
      */

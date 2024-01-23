@@ -30,6 +30,13 @@ class StockHistoryController extends Model
         'type_approvement',
         'status',
         'uuid',
-        'enterprise_id'
+        'enterprise_id' , 
+        'quantity_used',
+        'price_used',        
+        'operation_used',
+        'date_operation',
+        'palette',
+        'profit',
+        'method_used'
     ];
 }

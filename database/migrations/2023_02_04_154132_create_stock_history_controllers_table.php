@@ -24,9 +24,16 @@ class CreateStockHistoryControllersTable extends Migration
             $table->double('quantity_before')->nullable();
             $table->double('price')->nullable();
             $table->double('total')->nullable();
+            $table->double('price_used')->nullable();
+            $table->double('quantity_used')->nullable();
+            $table->double('profit')->nullable();
+            $table->integer('operation_used')->nullable();
             $table->date('expiration_date')->nullable();
+            $table->date('date_operation')->nullable();
             $table->integer('document_type')->nullable();
             $table->string('document_name')->nullable();
+            $table->string('palette')->nullable();
+            $table->string('method_used')->nullable();
             $table->string('document_number')->nullable();
             $table->string('attachment')->nullable();
             $table->string('motif')->nullable();

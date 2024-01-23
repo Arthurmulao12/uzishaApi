@@ -293,6 +293,7 @@ Route::get('/services/myarticles/{userid}',[ServicesControllerController::class,
 Route::get('/services/depositarticles/{depositid}',[ServicesControllerController::class,'depositarticles']);
 Route::get('/services/depositall/{depositid}',[ServicesControllerController::class,'depositall']);
 Route::post('/services/importation',[ServicesControllerController::class,'importation']);
+Route::post('/services/enterprise/deleteall',[ServicesControllerController::class,'resetallservices']);
 
 Route::apiResource('pricescategories',PricesCategoriesController::class);
 Route::put('/pricescategories/update/{id}',[PricesCategoriesController::class,'update2']);
@@ -398,7 +399,7 @@ Route::post('/accounts/importation',[AccountsController::class,'importation']);
 Route::apiResource('expenditures',ExpendituresController::class);
 Route::post('/expenditures/doneby',[ExpendituresController::class,'doneby']);
 Route::post('/expenditures/byaccount',[ExpendituresController::class,'byaccount']);
-Route::post('/expenditures/delete/{id}',[ExpendituresController::class,'delete']);
+Route::delete('/expenditures/delete/{id}',[ExpendituresController::class,'delete']);
 
 Route::apiResource('otherentries',OtherEntriesController::class);
 Route::get('/otherentries/enterprise/{enterpriseid}',[OtherEntriesController::class,'index']);
@@ -542,6 +543,11 @@ Route::get('/pressing/accounts/enterprise/{enterprise_id}',[AccountsController::
 Route::put('/pressing/accounts/update/{id}',[AccountsController::class,'update2']);
 Route::patch('pressing/accounts/update/{id}',[AccountsController::class,'update2']);
 
+/**
+ * invoices
+ */
+Route::post('/pressing/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
+
 //Pressing otherentries
 Route::post('/pressing/otherentries',[OtherEntriesController::class,'store']);
 Route::get('/pressing/otherentries/update/{id}',[OtherEntriesController::class,'update2']);
@@ -552,6 +558,8 @@ Route::post('/pressing/otherentries/doneby',[OtherEntriesController::class,'done
  */
 //Services
 Route::get('/services/search/enterprise/{enterprise_id}',[ServicesControllerController::class,'search']);
+Route::post('/services/searchbyword/enterprise',[ServicesControllerController::class,'searchinarticlesbyname']);
+Route::post('/services/searchbycodebar/enterprise',[ServicesControllerController::class,'searchbycodebar']);
 
 //DEPOSIT AND SERVICES
 Route::post('/deposit/services/searchbywords',[ServicesControllerController::class,'searchinarticlesdeposit']);
