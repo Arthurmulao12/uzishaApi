@@ -235,16 +235,33 @@ class ServicesControllerController extends Controller
      * reset all services
      */
     public function resetallservices(Request $request){
+        $counter=0;
+        $message="";
         $services=ServicesController::where('enterprise_id','=',$request['enterprise_id'])->get();
-        foreach ($services as $value) {
-            //delete prices
-            PricesCategories::where('service_id','=',$value['id'])->delete();
-            DepositServices::where('service_id','=',$value['id'])->delete();
-            StockHistoryController::where('service_id','=',$value['id'])->delete();
-            InvoiceDetails::where('service_id','=',$value['id'])->delete();
+        if(($services->count())>0){
+            foreach ($services as $value) {
+                //delete prices
+                PricesCategories::where('service_id','=',$value['id'])->delete();
+                DepositServices::where('service_id','=',$value['id'])->delete();
+                StockHistoryController::where('service_id','=',$value['id'])->delete();
+                InvoiceDetails::where('service_id','=',$value['id'])->delete();
+                if ($value->delete()) {
+                    $counter ++;
+                    $message="deleted all";
+                }else{
+                    $message="few deleted";
+                }
+            }
+        }else{
+            $message="empty";
         }
+        
 
-        return $services->delete();
+        return response()->json([
+            'deleted_counter' =>$counter,
+            'all'=>$services->count(),
+            'message'=>$message
+        ]);
     }
 
     /**
