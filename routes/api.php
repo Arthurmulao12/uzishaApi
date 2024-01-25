@@ -243,6 +243,7 @@ Route::post('/deposits/participants',[DepositControllerController::class,'partic
 Route::post('/deposit/addservices',[DepositControllerController::class,'addservices']);
 Route::post('/deposit/services/delete',[DepositControllerController::class,'withdrawServices']);
 Route::post('/deposit/users',[DepositControllerController::class,'depositForUser']);
+Route::post('/deposit/reset',[DepositControllerController::class,'reset']);
 
 //Deposits users
 Route::apiResource('depositsusers',DepositsUsersController::class);
@@ -407,6 +408,7 @@ Route::get('/otherentries/account/{accountid}',[OtherEntriesController::class,'b
 Route::get('/otherentries/update/{id}',[OtherEntriesController::class,'update2']);
 Route::get('/otherentries/delete/{id}',[OtherEntriesController::class,'delete']);
 Route::get('/otherentries/doneby/{id}',[OtherEntriesController::class,'doneby']);
+Route::post('/otherentries/dailyreport',[OtherEntriesController::class,'doneby']);
 
 /**
  * Safeguards

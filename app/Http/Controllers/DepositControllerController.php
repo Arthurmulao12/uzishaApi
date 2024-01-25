@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\DepositsUsers;
 use App\Models\DepositServices;
 use App\Models\DepositController;
 use App\Models\DepositsCategories;
 use App\Models\ServicesController;
+use Illuminate\Support\Facades\DB;
+use App\Models\StockHistoryController;
 use App\Models\CategoriesServicesController;
 use App\Http\Requests\StoreDepositControllerRequest;
 use App\Http\Requests\UpdateDepositControllerRequest;
-use App\Models\DepositsUsers;
-use App\Models\StockHistoryController;
 
 class DepositControllerController extends Controller
 {
@@ -30,6 +31,54 @@ class DepositControllerController extends Controller
         });
 
         return $data;
+    }
+
+    /**
+     * reset a specific deposit
+     */
+    public function reset(Request $request){
+        $user=$this->getinfosuser($request['user_id']);
+        $counter=0;
+        $inventory=[];
+        $message="";
+        if ($user) {
+            $inventory=DepositServices::where('deposit_id','=',$request['deposit_id'])->get();
+            foreach ($inventory as $item) {
+                if ($item['available_qte']>0) {
+                    $update=DB::update('update deposit_services set available_qte =0 where id = ?',[$item['id']]);
+                    if ($update) {
+                        $counter ++;
+                        //make a stock history
+                        if (isset($request['motif'])==false) {
+                            $request['motif']="Réinitialisation stock";
+                        }
+                        StockHistoryController::create([
+                            'service_id'=>$item['service_id'],
+                            'user_id'=>$user['id'],
+                            'invoice_id'=>0,
+                            'quantity'=>$item['available_qte'],
+                            'price'=>0,
+                            'type'=>'withdraw',
+                            'type_approvement'=>"cash",
+                            'enterprise_id'=>$this->getEse($user['id'])['id'],
+                            'motif'=>$request['motif'],
+                            'depot_id'=>$request['deposit_id'],
+                            'quantity_before'=>$item->available_qte,
+                        ]);
+                    }
+                }
+               
+            }
+        }else{
+            $message="unknown user";
+        }
+       
+        return response()->json(
+            [
+                "all"=>$inventory->count(),
+                "updated"=>$counter,
+                "message"=>$message
+            ]);
     }
 
     /**
