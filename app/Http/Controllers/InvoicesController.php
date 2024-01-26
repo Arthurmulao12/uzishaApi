@@ -368,8 +368,8 @@ class InvoicesController extends Controller
                         'customer_id'=>$invoice['customer_id'],
                         'invoice_id'=>$invoice['id'],
                         'status'=>'0',
-                        'amount'=>$invoice['total']-$invoice['amount_paid'],
-                        'sold'=>$invoice['total']-$invoice['amount_paid'],
+                        'amount'=>$invoice['netToPay']-$invoice['amount_paid'],
+                        'sold'=>$invoice['netToPay']-$invoice['amount_paid'],
                         'uuid'=>$this->getUuId('D','C'),
                         'sync_status'=>'1'
                     ]);

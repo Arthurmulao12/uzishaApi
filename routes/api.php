@@ -382,6 +382,7 @@ Route::apiResource('invoicedetails',InvoiceDetailsController::class);
 
 Route::apiResource('debts',DebtsController::class);
 Route::get('/debts/enterprise/{enterprise_id}',[DebtsController::class,'index']);
+Route::post('/reports/credits',[DebtsController::class,'debtsgroupedbycustomer']);
 Route::post('/debts/customer',[DebtsController::class,'compteCourant']);
 Route::post('/debts/customer/filteredcomptecourantcustomer',[DebtsController::class,'FilteredcompteCourant']);
 Route::post('/debts/payment',[DebtsController::class,'payment_debt']);
