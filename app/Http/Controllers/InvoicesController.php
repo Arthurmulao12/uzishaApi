@@ -188,12 +188,8 @@ class InvoicesController extends Controller
                     foreach ($details as $detail) {
                         array_push($details_gotten,$detail);
                     }
-                    
-                    // $details_gotten=collect($details_gotten)->mergeRecursive($details);
                 }
-                // $grouped=$details_gotten->groupBy('name');
                 $user['details']=$details_gotten;
-                // $user['details']=$details_gotten->all();
                 array_push($list_data,$user); 
             }
         }else{
@@ -225,12 +221,8 @@ class InvoicesController extends Controller
                     foreach ($details as $detail) {
                         array_push($details_gotten,$detail);
                     }
-                    
-                    // $details_gotten=collect($details_gotten)->mergeRecursive($details);
                 }
-                // $grouped=$details_gotten->groupBy('name');
                 $user['details']=$details_gotten;
-                // $user['details']=$details_gotten->all();
                 array_push($list_data,$user); 
             }
         } 
@@ -241,6 +233,96 @@ class InvoicesController extends Controller
             'to'=>$request['to'],
             'money'=>$this->defaultmoney($enterprise['id'])]);
     }
+
+     /**
+     * report by user for selling cash and credit
+     */
+    public function reportUserSellingGroupByArticle(Request $request){
+        $list_data=[];
+        $user=$this->getinfosuser($request['user_id']);
+        $enterprise=$this->getEse($user['id']);
+        if(empty($request->from) && empty($request->to)){
+            $request['from']= date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        }
+
+        if ($user['user_type']=='super_admin') {
+            $users=Invoices::where('enterprise_id','=',$enterprise['id'])
+            ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->select('edited_by_id')
+            ->groupBy('edited_by_id')
+            ->get();
+            
+            foreach ($users as $user) {
+                $cash=Invoices::select(DB::raw('sum(total) as totalCash'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','cash')->get('totalCash')->first();
+                $credits=Invoices::select(DB::raw('sum(total) as totalCredits'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','credit')->get('totalCredits')->first();
+                $user['user']=$this->getinfosuser($user['edited_by_id']);
+                $user['cash']=$cash['totalCash'];
+                $user['credits']=$credits['totalCredits'];
+
+                //grouped details invoices
+                $invoices=Invoices::where('edited_by_id','=',$user['edited_by_id'])
+                ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                ->get();
+                $details_gotten=[];
+                foreach ($invoices as $invoice) {
+                    
+                    $details=InvoiceDetails::where('invoice_details.invoice_id','=',$invoice['id'])
+                    ->select('invoice_details.service_id')
+                    ->get();
+                    foreach ($details as $value) {
+                        array_push($details_gotten,$value);
+                    }
+                }
+    
+                $user['details']=collect($details_gotten)->mapToGroups(function($item){
+                    return ["service"=>$item['service_id']];
+                });
+            
+                array_push($list_data,$user); 
+            }
+        }else{
+            $users=Invoices::where('enterprise_id','=',$enterprise['id'])->where('edited_by_id','=',$request['user_id'])
+            ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->select('edited_by_id')
+            ->groupBy('edited_by_id')
+            ->get();
+            
+            foreach ($users as $user) {
+                $cash=Invoices::select(DB::raw('sum(total) as totalCash'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','cash')->get('totalCash')->first();
+                $credits=Invoices::select(DB::raw('sum(total) as totalCredits'))->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])->where('edited_by_id','=',$user['edited_by_id'])->where('type_facture','=','credit')->get('totalCredits')->first();
+                $user['user']=$this->getinfosuser($user['edited_by_id']);
+                $user['cash']=$cash['totalCash'];
+                $user['credits']=$credits['totalCredits'];
+
+                //grouped details invoices
+                $invoices=Invoices::where('edited_by_id','=',$user['edited_by_id'])
+                ->whereBetween('created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                ->get();
+                $details_gotten=[];
+                foreach ($invoices as $invoice) {
+                    $details= DB::table('invoice_details')
+                    ->leftjoin('services_controllers as S','invoice_details.service_id','=','S.id')
+                    ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                    ->where('invoice_details.invoice_id','=',$invoice['id'])
+                    ->select('invoice_details.service_id','S.name','UOM.symbol','invoice_details.quantity','invoice_details.total')
+                    ->get();
+                    foreach ($details as $detail) {
+                        array_push($details_gotten,$detail);
+                    }
+                }
+                $user['details']=$details_gotten;
+                array_push($list_data,$user); 
+            }
+        } 
+
+        return response()->json([
+            'data'=>$list_data,
+            'from'=>$request['from'],
+            'to'=>$request['to'],
+            'money'=>$this->defaultmoney($enterprise['id'])]);
+    }
+
      /**
       * for a specific users
       */

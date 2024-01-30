@@ -31,19 +31,36 @@ class DebtsController extends Controller
      * get list of debts grouped by customer
      */
     public function debtsgroupedbycustomer(Request $request){
-        $from="";
-        $to="";
+        
+        if(isset($request['from']) && isset($request['to'])==false){
+            $request['to']=$request['from'];
+        } 
+        
+        if(isset($request['from'])==false && isset($request['to'])){
+            $request['from']=$request['to'];
+        }
+        
+        if(isset($request['from'])==false && isset($request['to'])==false){
+            $request['from']=date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        }
+           
+    
         $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
         ->select('debts.customer_id', DB::raw('SUM(debts.sold) as total'))
         ->where('I.type_facture','=','credit')
         ->where('I.enterprise_id','=',$request['enterprise_id'])
         ->where('debts.sold','>',0)
+        ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
         ->groupByRaw('debts.customer_id')
         ->get()); 
-        $listdata=$list->transform(function ($item){
+        $listdata=$list->transform(function ($item) use ($request){
             $item['customer']=CustomerController::where('id','=',$item['customer_id'])->select('customerName','adress','phone','mail')->first();
-            $debts=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')->where('debts.customer_id','=',$item['customer_id'])->where('sold','>',0)->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
-            // $item['debts']=$debts;
+            $debts=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+            ->where('debts.customer_id','=',$item['customer_id'])
+            ->where('sold','>',0)
+            ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
             $item['debts']=$debts->transform(function ($debt){
                 $debt['already_payed']=DebtPayments::where('debt_id','=',$debt['id'])->get()->sum('amount_payed');
                 return $debt;
@@ -53,8 +70,8 @@ class DebtsController extends Controller
 
         return response()->json([
             "data"=>$listdata,
-            "from"=>null,
-            "to"=>null,
+            "from"=>$request['from'],
+            "to"=>$request['to'],
             "money"=>$this->defaultmoney($request['enterprise_id'])
         ]);
     }

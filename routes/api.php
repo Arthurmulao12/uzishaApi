@@ -256,10 +256,12 @@ Route::get('/stockhistory/enterprise/{id}',[StockHistoryControllerController::cl
 Route::get('/stockhistory/serviceid/{serviceid}',[StockHistoryControllerController::class,'getbyservice']);
 Route::post('/stockhistory/byuser',[StockHistoryControllerController::class,'getbyuser']);
 Route::post('/stockhistory/byuser/grouped',[StockHistoryControllerController::class,'getbyusergrouped']);
+Route::post('/stockhistory/byuser/byarticles',[StockHistoryControllerController::class,'articlesgetbyusergrouped']);
 Route::post('/stockhistory/byuser/newreportstockhistory',[StockHistoryControllerController::class,'newReportStockHistory']);
 Route::post('/stockhistory/expiration',[StockHistoryControllerController::class,'reportexpiration']);
 Route::post('/stockhistory/fordeposit',[StockHistoryControllerController::class,'fordeposit']);
 Route::post('/stockhistory/multipleservices',[StockHistoryControllerController::class,'multipleservices']);
+Route::post('/stockhistory/report/bydeposits',[StockHistoryControllerController::class,'reportbydeposits']);
 
 //Transfert stock
 Route::apiResource('transfertstock',TransfertstockController::class);
@@ -371,6 +373,7 @@ Route::get('/invoices/enterprise/{id}',[InvoicesController::class,'index']);
 Route::get('/invoices/customer/{id}',[InvoicesController::class,'foracustomer']);
 Route::post('/invoices/filteredcustomer',[InvoicesController::class,'forACustomerFiltered']);
 Route::post('/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
+Route::post('/invoices/reportbyuser/grouped',[InvoicesController::class,'reportUserSellingGroupByArticle']);
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
 Route::post('/invoices/users',[InvoicesController::class,'foraspecificuser']);
 Route::patch('/invoices/cancel',[InvoicesController::class,'cancelling']);

@@ -280,7 +280,7 @@ class ServicesControllerController extends Controller
         ->where('deposit_services.deposit_id','=',$servicesController['deposit_id'])
         ->get(['deposit_services.available_qte','deposit_services.deposit_id','C.name as category_name','U.name as uom_name','U.symbol as uom_symbol','services_controllers.*'])[0];
         
-        return ['service'=>$service,'prices'=>$prices];
+        return ['quantity'=>$service['available_qte'],'service'=>$service,'prices'=>$prices];
     }
     
     public function depositarticles($deposit_id){
@@ -402,10 +402,10 @@ class ServicesControllerController extends Controller
      public function tosell(){
 
      }
+
     /**
      * adding from short cut (specially from seller)
      */
-
      public function showshortcut($service_id){
 
         return ServicesController::leftjoin('categories_services_controllers as C', 'S.category_id','=','C.id')
@@ -545,6 +545,16 @@ class ServicesControllerController extends Controller
         ->get(['C.name as category_name','U.name as uom_name','U.symbol as uom_symbol','services_controllers.*'])[0];
         
         return ['service'=>$service,'prices'=>$prices];
+    }
+
+    /**
+     * show detail without prices
+     */
+    public function detailwithoutprices(ServicesController $servicesController){
+        return ServicesController::leftjoin('categories_services_controllers as C', 'services_controllers.category_id','=','C.id')
+        ->leftjoin('unit_of_measure_controllers as U','services_controllers.uom_id','=','U.id')
+        ->where('services_controllers.id', '=', $servicesController->id)
+        ->get(['C.name as category_name','U.name as uom_name','U.symbol as uom_symbol','services_controllers.*'])->first();
     }
 
     /**
