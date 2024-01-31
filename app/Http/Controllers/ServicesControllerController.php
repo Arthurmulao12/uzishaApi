@@ -33,7 +33,7 @@ class ServicesControllerController extends Controller
      */
     public function search($enterprise_id){
          
-        $list=ServicesController::where('enterprise_id', '=', $enterprise_id)->paginate(100);
+        $list=ServicesController::where('enterprise_id', '=', $enterprise_id)->paginate(50);
         $list->getCollection()->transform(function ($item){
             return $this->show($item);
         });
