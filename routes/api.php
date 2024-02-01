@@ -451,6 +451,7 @@ Route::post('/reports/cashbook',[InvoicesController::class,'cashbook']);
 Route::post('/reports/invoices/reportbyarticles',[InvoicesController::class,'reportbyarticles']);
 Route::post('/reports/invoices/reportbydepositsarticles',[InvoicesController::class,'reportbydepositsarticles']);
 Route::post('/reports/invoices/reportbyagents',[InvoicesController::class,'reportbyagents']);
+Route::post('/reports/invoices/creditsByCutomers',[DebtsController::class,'creditsByCutomers']);
 
 /**
  * Pressings
