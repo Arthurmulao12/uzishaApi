@@ -373,6 +373,7 @@ Route::get('/invoices/enterprise/{id}',[InvoicesController::class,'index']);
 Route::get('/invoices/customer/{id}',[InvoicesController::class,'foracustomer']);
 Route::post('/invoices/filteredcustomer',[InvoicesController::class,'forACustomerFiltered']);
 Route::post('/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
+Route::post('/invoices/newreportbyuser',[InvoicesController::class,'reportUserSelling2']);
 Route::post('/invoices/reportbyuser/grouped',[InvoicesController::class,'reportUserSellingGroupByArticle']);
 Route::get('/invoices/comptecourant/{customerid}',[InvoicesController::class,'comptecourant']);
 Route::post('/invoices/users',[InvoicesController::class,'foraspecificuser']);
@@ -386,6 +387,7 @@ Route::apiResource('invoicedetails',InvoiceDetailsController::class);
 Route::apiResource('debts',DebtsController::class);
 Route::get('/debts/enterprise/{enterprise_id}',[DebtsController::class,'index']);
 Route::post('/reports/credits',[DebtsController::class,'debtsgroupedbycustomer']);
+Route::post('/reports/credits/debtsfilteredbycriteria',[DebtsController::class,'debtsfilteredbycriteria']);
 Route::post('/debts/customer',[DebtsController::class,'compteCourant']);
 Route::post('/debts/customer/filteredcomptecourantcustomer',[DebtsController::class,'FilteredcompteCourant']);
 Route::post('/debts/payment',[DebtsController::class,'payment_debt']);
@@ -557,6 +559,7 @@ Route::patch('pressing/accounts/update/{id}',[AccountsController::class,'update2
  * invoices
  */
 Route::post('/pressing/invoices/reportbyuser',[InvoicesController::class,'reportUserSelling']);
+Route::post('/pressing/invoices/newreportbyuser',[InvoicesController::class,'reportUserSelling2']);
 
 //Pressing otherentries
 Route::post('/pressing/otherentries',[OtherEntriesController::class,'store']);

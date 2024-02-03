@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDebtsRequest;
 use App\Http\Requests\UpdateDebtsRequest;
 use App\Models\CustomerController;
+use App\Models\InvoiceDetails;
 use App\Models\Invoices;
 
 class DebtsController extends Controller
@@ -31,47 +32,59 @@ class DebtsController extends Controller
       * report credits by customers
       */
       public function creditsByCutomers(Request $request){
-        
-        if(isset($request['from']) && isset($request['to'])==false){
+        $customers=[];
+        if(isset($request['from']) && empty($request['to'])){
             $request['to']=$request['from'];
         } 
         
-        if(isset($request['from'])==false && isset($request['to'])){
+        if(empty($request['from']) && isset($request['to'])){
             $request['from']=$request['to'];
         }
         
-        if(isset($request['from'])==false && isset($request['to'])==false){
+        if(empty($request['from']) && empty($request['to'])){
             $request['from']=date('Y-m-d');
             $request['to']=date('Y-m-d');
         }
            
-    
-        $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
-        ->select('debts.customer_id', DB::raw('SUM(debts.sold) as total'))
-        ->where('I.type_facture','=','credit')
-        ->where('I.enterprise_id','=',$request['enterprise_id'])
-        ->where('debts.sold','>',0)
-        ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
-        ->groupByRaw('debts.customer_id')
-        ->get()); 
-        $listdata=$list->transform(function ($item) use ($request){
-            $item['customer']=CustomerController::where('id','=',$item['customer_id'])->select('customerName','adress','phone','mail')->first();
-            $debts=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
-            ->where('debts.customer_id','=',$item['customer_id'])
-            ->where('sold','>',0)
-            ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
-            ->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
-            $item['debts']=$debts->transform(function ($debt){
-                $debt['already_payed']=DebtPayments::where('debt_id','=',$debt['id'])->get()->sum('amount_payed');
-                return $debt;
-            });
-            return $item;
-        });
+        if(isset($request['customers']) && !empty($request['customers'])){
+            $customers=collect(CustomerController::whereIn('id',$request['customers'])->get());
+            $customers->transform(function ($customer) use ($request){
+                $total=Debts::join('invoices as I','debts.invoice_id','=','I.id')
+                ->select(DB::raw('SUM(debts.sold) as total'))
+                ->where('debts.customer_id','=',$customer['id'])
+                ->where('debts.sold','>',0)
+                ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                ->get('total')->first();
+                $customer['total']=$total['total'];
+                //debts list
+                     $debts=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+                            ->where('debts.customer_id','=',$customer['id'])
+                            ->where('sold','>',0)
+                            ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                            ->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
 
+                        $debts->transform(function ($debt){
+                            $details=DB::table('invoice_details')
+                            ->leftjoin('services_controllers as S','invoice_details.service_id','=','S.id')
+                            ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                            ->where('invoice_details.invoice_id','=',$debt['invoice_id'])
+                            ->select('invoice_details.service_id','S.name','UOM.symbol','invoice_details.quantity','invoice_details.total')
+                            ->get();
+                            $debt['details']=$details;
+                            $debt['already_payed']=DebtPayments::where('debt_id','=',$debt['id'])->get()->sum('amount_payed');
+                            return $debt;
+                        });
+                    $customer['debts']=$debts;
+                return $customer;
+            });
+
+            
+        }
         return response()->json([
-            "data"=>$listdata,
+            "data"=>$customers,
             "from"=>$request['from'],
             "to"=>$request['to'],
+            "total_general"=>$customers->sum('total'),
             "money"=>$this->defaultmoney($request['enterprise_id'])
         ]);
       }
@@ -110,6 +123,98 @@ class DebtsController extends Controller
             ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
             ->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
             $item['debts']=$debts->transform(function ($debt){
+                $details=DB::table('invoice_details')
+                ->leftjoin('services_controllers as S','invoice_details.service_id','=','S.id')
+                ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                ->where('invoice_details.invoice_id','=',$debt['invoice_id'])
+                ->select('invoice_details.service_id','S.name','UOM.symbol','invoice_details.quantity','invoice_details.total')
+                ->get();
+                $debt['details']=$details;
+                $debt['already_payed']=DebtPayments::where('debt_id','=',$debt['id'])->get()->sum('amount_payed');
+                return $debt;
+            });
+            return $item;
+        });
+
+        return response()->json([
+            "data"=>$listdata,
+            "from"=>$request['from'],
+            "to"=>$request['to'],
+            "money"=>$this->defaultmoney($request['enterprise_id'])
+        ]);
+    }
+    
+    /**
+     * get list of debts grouped by customer filtered by criteria
+     */
+    public function debtsfilteredbycriteria(Request $request){
+
+        if(isset($request['from']) && empty($request['to'])){
+            $request['to']=$request['from'];
+        } 
+        
+        if(empty($request['from']) && isset($request['to'])){
+            $request['from']=$request['to'];
+        }
+        
+        if(empty($request['from']) && empty($request['to'])){
+            $request['from']=date('Y-m-d');
+            $request['to']=date('Y-m-d');
+        }
+
+        switch ($request['criteria']) {
+            case 'payed':
+                
+                $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+                ->select('debts.customer_id', DB::raw('SUM(debts.sold) as total'))
+                ->where('I.type_facture','=','credit')
+                ->where('I.enterprise_id','=',$request['enterprise_id'])
+                ->where('debts.sold','<=',0)
+                ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                ->groupByRaw('debts.customer_id')
+                ->get());
+                break;
+            case 'partially':
+                
+                    $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+                    ->select('debts.customer_id', DB::raw('SUM(debts.sold) as total'))
+                    ->where('I.type_facture','=','credit')
+                    ->where('I.enterprise_id','=',$request['enterprise_id'])
+                    ->where('debts.sold','>',0)
+                    ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                    ->groupByRaw('debts.customer_id')
+                    ->get());
+                break;
+            case "not_payed" :
+                    $list=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+                    ->select('debts.customer_id', DB::raw('SUM(debts.sold) as total'))
+                    ->where('I.type_facture','=','credit')
+                    ->where('I.enterprise_id','=',$request['enterprise_id'])
+                    ->where('debts.sold','=','debts.amount')
+                    ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+                    ->groupByRaw('debts.customer_id')
+                    ->get());
+                break;
+            default:
+                $list=[];
+                break;
+        }           
+
+        $listdata=$list->transform(function ($item) use ($request){
+            $item['customer']=CustomerController::where('id','=',$item['customer_id'])->select('customerName','adress','phone','mail')->first();
+            $debts=collect(Debts::join('invoices as I','debts.invoice_id','=','I.id')
+            ->where('debts.customer_id','=',$item['customer_id'])
+            ->where('sold','>',0)
+            ->whereBetween('debts.created_at',[$request['from'].' 00:00:00',$request['to'].' 23:59:59'])
+            ->get(['debts.*','I.uuid','I.netToPay as total_invoice']));
+            $item['debts']=$debts->transform(function ($debt){
+                $details=DB::table('invoice_details')
+                ->leftjoin('services_controllers as S','invoice_details.service_id','=','S.id')
+                ->leftjoin('unit_of_measure_controllers as UOM','S.uom_id','=','UOM.id')
+                ->where('invoice_details.invoice_id','=',$debt['invoice_id'])
+                ->select('invoice_details.service_id','S.name','UOM.symbol','invoice_details.quantity','invoice_details.total')
+                ->get();
+                $debt['details']=$details;
                 $debt['already_payed']=DebtPayments::where('debt_id','=',$debt['id'])->get()->sum('amount_payed');
                 return $debt;
             });
